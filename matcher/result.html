@@ -11,7 +11,7 @@
         <meta property="og:description" content="See how compatible your music taste is with your friends on Last.fm (Last 30 Days)." />
         <meta name="theme-color" content="#bb86fc" />
         <link rel="stylesheet" href="css/base.css" />
-        <link rel="stylesheet" href="css/match.css" />
+        <link rel="stylesheet" href="css/result.css" />
         <link rel="stylesheet" href="css/cards.css" />
         <link rel="stylesheet" href="css/feedback.css" />
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet" />
@@ -24,236 +24,297 @@
             gtag("js", new Date());
             gtag("config", "G-ESP4KVJCPE");
         </script>
-        <title>Match Result - TuneCharts</title>
     </head>
-    <body class="page-matcher">
-        <header class="topo-fixo">
-            <a href="index.html" class="btn-voltar" style="position: absolute; left: 20px; text-decoration: none; color: #fff; font-size: 1rem; opacity: 0.7" aria-label="Go back to home">← New Match</a>
-            <a href="index.html" style="text-decoration: none; color: #fff; font-weight: 900; font-size: 1.2rem">TuneCharts <span style="color: #bb86fc">Matcher</span></a>
-        </header>
-        <main class="dashboard-container" id="screenArea">
-            <div id="loadingState">
-                <div style="text-align: center; padding: 50px">
-                    <div class="spinner"></div>
-                    <small style="letter-spacing: 2px; color: #888">CALCULATING...</small>
+<body class="pagina-resultado">
+    <header class="topo-fixo">
+        <a href="index.html" class="btn-voltar" style="display: flex; align-items: center; gap: 8px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 12h16M4 12l4-4m-4 4 4 4"/>
+            </svg>
+            <span>Back</span>
+        </a>
+    </header>
+
+    <section class="topo-com-banner">
+        <div class="banner-fundo" id="bannerBackground">
+            <div class="banner-overlay"></div>
+        </div>
+
+        <div class="duo-header-container">
+            <div class="perfil-container user-left">
+                <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt=" " class="foto-perfil skeleton" id="userFoto1" /> 
+                <h1 id="userName1" class="skeleton">&nbsp;</h1>
+                <div class="stats-row">
+                    <div class="scrobbles-info">
+                        <span id="userScrobbles1" class="skeleton">----</span> scrobbles
+                    </div>  
                 </div>
             </div>
-            <div class="dashboard-grid">
-                <section class="dash-col user-col left">
-                    <div class="profile-card">
-                        <img id="u1Img" src="" alt="" class="p-img skeleton" />
-                        <div class="p-info">
-                            <div id="u1Name" class="p-name skeleton-text">User 1</div>
-                            <div id="u1Scrobbles" class="p-stat skeleton-text-sm">...</div>
-                        </div>
-                    </div>
-                    <div class="list-card">
-                        <div class="list-header" id="u1ListTitle">Unique Vibe</div>
-                        <div id="u1List" class="track-list">
-                            <div class="sk-item"></div>
-                            <div class="sk-item"></div>
-                            <div class="sk-item"></div>
-                        </div>
-                    </div>
-                </section>
-                <section class="dash-col center-col">
-                    <div class="match-card">
-                        <div class="score-ring-container">
-                            <div id="scoreRing" class="score-ring skeleton">
-                                <div class="score-content">
-                                    <span id="scoreVal" class="score-val">--</span>
-                                    <span class="score-pct">%</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div id="matchTitle" class="match-title skeleton-text">CALCULATING...</div>
-                    </div>
-                    <div class="list-card common-list-card">
-                        <div class="list-header">❤️ Common Ground</div>
-                        <div id="commonList" class="track-list">
-                            <div class="sk-item"></div>
-                            <div class="sk-item"></div>
-                            <div class="sk-item"></div>
-                        </div>
-                    </div>
-                </section>
-                <section class="dash-col user-col right">
-                    <div class="profile-card">
-                        <img id="u2Img" src="" alt="" class="p-img skeleton" />
-                        <div class="p-info">
-                            <div id="u2Name" class="p-name skeleton-text">User 2</div>
-                            <div id="u2Scrobbles" class="p-stat skeleton-text-sm">...</div>
-                        </div>
-                    </div>
-                    <div class="list-card">
-                        <div class="list-header" id="u2ListTitle">Unique Vibe</div>
-                        <div id="u2List" class="track-list">
-                            <div class="sk-item"></div>
-                            <div class="sk-item"></div>
-                            <div class="sk-item"></div>
-                        </div>
-                    </div>
-                </section>
-            </div>
-            <div class="card-branding">TuneCharts Matcher • Last 30 Days Analysis</div>
-        </main>
-        <div class="actions-bar">
-            <button id="btnDownload" disabled>Wait...</button>
-        </div>
-        <div id="formatModal" class="modal">
-            <div class="modal-content">
-                <span class="close-button" onclick="document.getElementById('formatModal').style.display='none'">&times;</span>
-                <h2>Choose a format</h2>
-                <div class="format-picker">
-                    <button class="format-option" onclick="generateExport('story')">
-                        <div class="format-preview format-story"></div>
-                        <span>Story (9:16)</span>
-                    </button>
-                    <button class="format-option" onclick="generateExport('square')">
-                        <div class="format-preview format-square"></div>
-                        <span>Square (1:1)</span>
-                    </button>
+
+            <div class="divisor-vs">VS</div>
+
+            <div class="perfil-container user-right">
+                <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt=" " class="foto-perfil skeleton" id="userFoto2" /> 
+                <h1 id="userName2" class="skeleton">&nbsp;</h1>
+                <div class="stats-row">
+                    <div class="scrobbles-info">
+                        <span id="userScrobbles2" class="skeleton">----</span> scrobbles
+                    </div>  
                 </div>
             </div>
         </div>
-        <div id="colorPickerModal" class="modal">
-            <div class="modal-content">
-                <span class="close-button" onclick="document.getElementById('colorPickerModal').style.display='none'">&times;</span>
-                <h2>Choose an accent color</h2>
-                <div class="color-palette">
-                    <button class="color-option" style="background-color: #bb86fc" onclick="selectColor('#bb86fc')"></button>
-                    <button class="color-option" style="background-color: #f44336" onclick="selectColor('#F44336')"></button>
-                    <button class="color-option" style="background-color: #ff9800" onclick="selectColor('#FF9800')"></button>
-                    <button class="color-option" style="background-color: #ffd700" onclick="selectColor('#FFD700')"></button>
-                    <button class="color-option" style="background-color: #4caf50" onclick="selectColor('#4CAF50')"></button>
-                    <button class="color-option" style="background-color: #2196f3" onclick="selectColor('#2196F3')"></button>
-                    <button class="color-option" style="background-color: #e91e63" onclick="selectColor('#E91E63')"></button>
+
+        <div class="header-titles">
+            <h2 class="subtitulo-destaque">MATCH: <span id="compatibilityScore">--</span>%</h2>
+            <p id="commonContent" class="monthly-label">Analyzing your musical bond...</p>
+        </div>
+    </section>
+
+    <main class="conteudo-charts">
+        <div class="charts-grid">
+            <section class="chart-card" id="cardUser1">
+                <h2><span id="labelUser1">User1</span>'s Vibe</h2>
+                <div class="lista-top">
+                    <div class="chart-item skeleton top-1">
+                        <div class="cover-placeholder" style="background: white; width: 50px; height: 50px; border-radius: 4px; flex-shrink: 0"></div>
+                        <span class="skeleton-text" style="width: 60%"></span>
+                    </div>
+                    <div class="chart-item skeleton"></div>
+                    <div class="chart-item skeleton"></div>
+                    <div class="chart-item skeleton"></div>
+                    <div class="chart-item skeleton"></div>
+                    <div class="chart-item skeleton"></div>
+                </div>
+            </section>
+            <section class="chart-card" id="cardShared">
+                <h2>Common Artists</h2>
+                <div class="lista-top">
+                    <div class="chart-item skeleton top-1">
+                        <div class="cover-placeholder" style="background: white; width: 50px; height: 50px; border-radius: 4px; flex-shrink: 0"></div>
+                        <span class="skeleton-text" style="width: 60%"></span>
+                    </div>
+                    <div class="chart-item skeleton"></div>
+                    <div class="chart-item skeleton"></div>
+                    <div class="chart-item skeleton"></div>
+                    <div class="chart-item skeleton"></div>
+                    <div class="chart-item skeleton"></div>
+                </div>
+            </section>
+            <section class="chart-card" id="cardUser2">
+                <h2><span id="labelUser2">User2</span>'s Vibe</h2>
+                <div class="lista-top">
+                    <div class="chart-item skeleton top-1">
+                        <div class="cover-placeholder" style="background: white; width: 50px; height: 50px; border-radius: 4px; flex-shrink: 0"></div>
+                        <span class="skeleton-text" style="width: 60%"></span>
+                    </div>
+                    <div class="chart-item skeleton"></div>
+                    <div class="chart-item skeleton"></div>
+                    <div class="chart-item skeleton"></div>
+                    <div class="chart-item skeleton"></div>
+                    <div class="chart-item skeleton"></div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <div class="hidden-card-container">
+        
+        <div id="storyCard">
+            <div class="story-header" id="storyHeaderBg">
+                <div class="story-header-content">   
+                    <div class="duo-user-block">
+                        <img id="storyUserImg1" src="" class="story-avatar-duo" />
+                        <h1 id="storyUserName1" class="story-username-duo">...</h1>
+                    </div>
+                    <div class="duo-vs">VS</div>
+                    <div class="duo-user-block">
+                        <img id="storyUserImg2" src="" class="story-avatar-duo" />
+                        <h1 id="storyUserName2" class="story-username-duo">...</h1>
+                    </div>
+                </div>
+                <p id="storySharedText" class="story-dynamic-text">Analyzing compatibility...</p>
+            </div>
+
+            <div class="story-body">
+                <div class="story-column">
+                    <h3 id="storyColTitle1">User 1</h3>
+                    <div id="storyList1" class="story-list"></div>
+                </div>
+                <div class="story-column">
+                    <h3 id="storyColTitle2">User 2</h3>
+                    <div id="storyList2" class="story-list"></div>
+                </div>
+            </div>
+
+            <div class="story-footer">
+                <div class="story-brand">matcher.tunecharts.space</div>
+                <div class="story-stat">
+                    <span class="stat-label">Compatibility</span>
+                    <span id="storyScoreValue" class="stat-value">0%</span>
                 </div>
             </div>
         </div>
-        <div class="hidden-export-container" style="display: none">
-            <div id="exportSquare" class="export-card card-square">
-                <div class="match-arena">
-                    <div class="p-group p-left">
-                        <img id="sq-p1-img" src="" class="p-img" />
-                        <div id="sq-p1-name" class="p-name">User 1</div>
-                    </div>
-                    <div id="sq-score-circle" class="score-circle">
-                        <span id="sq-crown" class="crown">👑</span>
-                        <div style="text-align: center">
-                            <div class="score-val"><span id="sq-score-val">0</span></div>
-                        </div>
-                    </div>
-                    <div class="p-group p-right">
-                        <img id="sq-p2-img" src="" class="p-img" />
-                        <div id="sq-p2-name" class="p-name">User 2</div>
-                    </div>
+
+        <div id="squareCardV2">
+            <div class="sq-v2-header">
+                <div class="sq-duo-block">
+                    <img id="sqUserImg1" src="" class="sq-v2-avatar" />
+                    <span id="sqUserName1" class="sq-v2-username">...</span>
                 </div>
-                <div id="sq-match-title" class="match-title">Title</div>
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div id="sq-stat-user1" class="stat-user">User 1</div>
-                        <div id="sq-stat-val1" class="stat-pill">...</div>
-                    </div>
-                    <div class="stat-card">
-                        <div id="sq-stat-user2" class="stat-user">User 2</div>
-                        <div id="sq-stat-val2" class="stat-pill">...</div>
-                    </div>
+                
+                <div class="sq-duo-vs">VS</div>
+
+                <div class="sq-duo-block">
+                    <img id="sqUserImg2" src="" class="sq-v2-avatar" />
+                    <span id="sqUserName2" class="sq-v2-username">...</span>
                 </div>
-                <div id="sq-shared-text" class="match-subtitle"></div>
-                <div class="card-footer">Create yours at matcher.tunecharts.space</div>
             </div>
-            <div id="exportStory" class="export-card card-story">
-                <div class="match-arena">
-                    <div class="p-group p-left">
-                        <img id="st-p1-img" src="" class="p-img" />
-                        <div id="st-p1-name" class="p-name">User 1</div>
-                    </div>
-                    <div id="st-score-circle" class="score-circle">
-                        <span id="st-crown" class="crown">👑</span>
-                        <div style="text-align: center">
-                            <div class="score-val"><span id="st-score-val">0</span></div>
-                        </div>
-                    </div>
-                    <div class="p-group p-right">
-                        <img id="st-p2-img" src="" class="p-img" />
-                        <div id="st-p2-name" class="p-name">User 2</div>
-                    </div>
+
+            <div class="sq-v2-body">
+                <div class="sq-v2-column">
+                    <h3 id="sqColTitle1">User 1</h3>
+                    <ul id="sqCol1List" class="sq-v2-list"></ul>
                 </div>
-                <div id="st-match-title" class="match-title">Title</div>
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div id="st-stat-user1" class="stat-user">User 1</div>
-                        <div id="st-stat-val1" class="stat-pill">...</div>
-                    </div>
-                    <div class="stat-card">
-                        <div id="st-stat-user2" class="stat-user">User 2</div>
-                        <div id="st-stat-val2" class="stat-pill">...</div>
-                    </div>
+
+                <div class="sq-v2-column">
+                    <h3 id="sqColTitle2">User 2</h3>
+                    <ul id="sqCol2List" class="sq-v2-list"></ul>
                 </div>
-                <div id="st-common-list-container" class="common-list-box"></div>
-                <div class="card-footer">Create yours at matcher.tunecharts.space</div>
+            </div>
+
+            <div class="sq-v2-footer">
+                <div class="sq-v2-brand">matcher.tunecharts.space</div>
+                <div class="sq-v2-stat">
+                    <span class="sq-v2-stat-label">Musical Match</span>
+                    <span id="sqScoreValue" class="sq-v2-stat-value">0%</span>
+                </div>
             </div>
         </div>
-        <footer>
-            <div id="feedbackModal" class="feedback-overlay">
-                <div class="feedback-box">
-                    <span class="feedback-close" onclick="closeFeedback()">&times;</span>
-                    <div id="formContainer">
-                        <h2 style="margin-bottom: 10px; color: #fff; text-align: center">Send Feedback</h2>
-                        <p style="color: #aaa; font-size: 0.9em; margin-bottom: 25px; text-align: center; line-height: 1.5">
-                            Found a bug? Have a suggestion? Let us know!<br />Your feedback helps us improve.
-                        </p>
-                        <form id="feedbackForm" action="https://formspree.io/f/mkgdqwww" method="POST" style="display: flex; flex-direction: column; gap: 15px">
-                            <input type="hidden" name="tool_source" value="Matcher" />
-                            <div class="rating-wrapper" style="text-align: center; margin-bottom: 5px">
-                                <span style="display: block; font-size: 0.9em; color: #ccc; margin-bottom: 8px">How satisfied are you?</span>
-                                <div class="star-rating" style="display: inline-block; direction: rtl; border: none">
-                                    <input type="radio" id="star5" name="rating" value="5" hidden /><label for="star5" title="Excellent">★</label>
-                                    <input type="radio" id="star4" name="rating" value="4" hidden /><label for="star4" title="Great">★</label>
-                                    <input type="radio" id="star3" name="rating" value="3" hidden /><label for="star3" title="Good">★</label>
-                                    <input type="radio" id="star2" name="rating" value="2" hidden /><label for="star2" title="Poor">★</label>
-                                    <input type="radio" id="star1" name="rating" value="1" hidden /><label for="star1" title="Very Poor">★</label>
-                                </div>
-                            </div>
-                            <textarea name="message" placeholder="Type your message here..." required style="width: 100%; height: 120px; padding: 15px; border-radius: 12px; border: 1px solid #333; background: rgba(255, 255, 255, 0.05); color: #fff; font-family: 'Poppins', sans-serif; font-size: 0.95rem; resize: none; outline: none;"></textarea>
-                            <input type="text" name="contact" placeholder="Last.fm user or Email (Optional)" style="width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #333; background: rgba(255, 255, 255, 0.05); color: #fff; font-family: 'Poppins', sans-serif; font-size: 0.95rem; outline: none;" />
-                            <button type="submit" id="btnSendFeedback" style="background-color: #bb86fc; color: #000; font-weight: 700; border: none; padding: 15px; border-radius: 50px; cursor: pointer; transition: all 0.2s; font-size: 1rem; margin-top: 10px;">
-                                Send Feedback
-                            </button>
-                        </form>
-                    </div>
-                    <div id="successContainer" style="display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 30px 0">
-                        <div style="width: 80px; height: 80px; border-radius: 50%; background: rgba(187, 134, 252, 0.1); color: #bb86fc; display: flex; align-items: center; justify-content: center; margin-bottom: 20px">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="width: 40px; height: 40px; stroke-width: 3">
-                                <polyline points="20 6 9 17 4 12"></polyline>
-                            </svg>
-                        </div>
-                        <h3 style="margin-bottom: 10px; font-size: 1.5rem; color: #fff">Thank You!</h3>
-                        <p style="color: #aaa">Your feedback has been sent successfully.</p>
-                    </div>
-                </div>
+
+    </div>
+    <button id="btnGerarRelatorio" style="display: flex; align-items: center; gap: 10px; justify-content: center;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m8 12 4 4m0 0 4-4m-4 4V4M4 20h16"/>
+        </svg>
+        Generate Report
+    </button>
+
+    <div id="formatPickerModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" data-modal="formatPickerModal" style="display: flex; align-items: center; justify-content: center;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m6 6 12 12m0-12L6 18"/>
+                </svg>
+            </span>
+            <h2>Choose a format</h2>
+            <div class="format-picker">
+                <button class="format-option" data-format="story">
+                    <div class="format-preview format-story"></div>
+                    <span>Story (9:16)</span>
+                </button>
+                <button class="format-option" data-format="square">
+                    <div class="format-preview format-square"></div>
+                    <span>Square (1:1)</span>
+                </button>
             </div>
-            <div class="footer-info">
-                <span class="info-line-1">© <span id="currentYear"></span> TuneCharts.</span>
-                <span class="info-line-2">All rights reserved.</span><span class="separator">|</span>
-                <span class="info-line-3">Created with 💜 by <a href="https://github.com/snw-mint/" target="_blank">Snow Mint</a></span>
+            
+            <div style="margin-top: 25px;">
+                <button id="confirmColumnsBtn" class="btn-proceed">Choose Color</button>
             </div>
-            <div class="footer-links">
-                <a href="privacy.html">Privacy Policy</a><span class="dot">•</span><a href="terms.html">Terms of Use</a>
-                <span class="dot">•</span><a href="#" onclick="openFeedback(event)">Send Feedback</a>
-                <span class="dot">•</span>
-                <a href="https://github.com/snw-mint/tunecharts" target="_blank" aria-label="View Source on GitHub" title="View Source on GitHub" style="display: inline-flex; align-items: center">
-                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="transition: stroke 0.2s">
-                        <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+        </div>
+    </div>
+
+    <div id="colorPickerModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" data-modal="colorPickerModal">&times;</span>
+            <h2>Choose your accent color!</h2>
+            <div class="color-palette">
+                <button class="color-option" data-color="#F44336" style="background-color: #f44336" title="Red"></button>
+                <button class="color-option" data-color="#FF5733" style="background-color: #ff5733" title="Orange"></button>
+                <button class="color-option" data-color="#FFD700" style="background-color: #ffd700" title="Yellow"></button>
+                <button class="color-option" data-color="#28a745" style="background-color: #28a745" title="Green"></button>
+                <button class="color-option" data-color="#39CCCC" style="background-color: #39cccc" title="Aqua"></button>
+                <button class="color-option" data-color="#337AFF" style="background-color: #337aff" title="Blue"></button>
+                <button class="color-option" data-color="#bb86fc" style="background-color: #bb86fc" title="Purple"></button>
+                <button class="color-option" data-color="#FF1493" style="background-color: #ff1493" title="Pink"></button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div id="feedbackModal" class="feedback-overlay">
+            <div class="feedback-box">
+                <span class="feedback-close" onclick="closeFeedback()" style="display: flex; align-items: center; justify-content: center;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m6 6 12 12m0-12L6 18"/>
                     </svg>
-                </a>
-                <span class="dot">•</span><a href="changelog.html" class="versao">v2.0.0</a>
+                </span>
+                <div id="formContainer">
+                    <h2 style="margin-bottom: 10px; color: #fff; text-align: center">Send Feedback</h2>
+                    <p style="color: #aaa; font-size: 0.9em; margin-bottom: 25px; text-align: center; line-height: 1.5">
+                        Found a bug? Have a suggestion? Let us know!<br />Your feedback helps us improve.
+                    </p>
+                    <form id="feedbackForm" action="https://formspree.io/f/mkgdqwww" method="POST" style="display: flex; flex-direction: column; gap: 15px">
+                        <input type="hidden" name="tool_source" value="TuneCharts" />
+                        <div class="rating-wrapper" style="text-align: center; margin-bottom: 5px">
+                            <span style="display: block; font-size: 0.9em; color: #ccc; margin-bottom: 8px">How satisfied are you?</span>
+                            <div class="star-rating" style="display: inline-block; direction: rtl; border: none">
+                                <input type="radio" id="star5" name="rating" value="5" hidden /><label for="star5" title="Excellent">★</label>
+                                <input type="radio" id="star4" name="rating" value="4" hidden /><label for="star4" title="Great">★</label>
+                                <input type="radio" id="star3" name="rating" value="3" hidden /><label for="star3" title="Good">★</label>
+                                <input type="radio" id="star2" name="rating" value="2" hidden /><label for="star2" title="Poor">★</label>
+                                <input type="radio" id="star1" name="rating" value="1" hidden /><label for="star1" title="Very Poor">★</label>
+                            </div>
+                        </div>
+                        <textarea
+                            name="message"
+                            placeholder="Type your message here..."
+                            required
+                            style="width: 100%; height: 120px; padding: 15px; border-radius: 12px; border: 1px solid #333; background: rgba(255, 255, 255, 0.05); color: #fff; font-family: 'Poppins', sans-serif; font-size: 0.95rem; resize: none; outline: none;"></textarea>
+                        <input
+                            type="text"
+                            name="contact"
+                            placeholder="Last.fm user or Email (Optional)"
+                            style="width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #333; background: rgba(255, 255, 255, 0.05); color: #fff; font-family: 'Poppins', sans-serif; font-size: 0.95rem; outline: none;" />
+                        <button
+                            type="submit"
+                            id="btnSendFeedback"
+                            style="background-color: #bb86fc; color: #000; font-weight: 700; border: none; padding: 15px; border-radius: 50px; cursor: pointer; transition: all 0.2s; font-size: 1rem; margin-top: 10px;">
+                            Send Feedback
+                        </button>
+                    </form>
+                </div>
+                <div id="successContainer" style="display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 30px 0">
+                    <div style="width: 80px; height: 80px; border-radius: 50%; background: rgba(187, 134, 252, 0.1); color: #bb86fc; display: flex; align-items: center; justify-content: center; margin-bottom: 20px">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="width: 40px; height: 40px; stroke-width: 3">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </div>
+                    <h3 style="margin-bottom: 10px; font-size: 1.5rem; color: #fff">Thank You!</h3>
+                    <p style="color: #aaa">Your feedback has been sent successfully.</p>
+                </div>
             </div>
-        </footer>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-        <script src="feedback.js"></script>
-        <script src="result.js"></script>
-        <script src="../version.js"></script>
-    </body>
+        </div>
+        <div class="footer-info">
+            <span class="info-line-1">© <span id="currentYear"></span> TuneCharts.</span>
+            <span class="info-line-2">All rights reserved.</span><span class="separator">|</span>
+            <span class="info-line-3">Created with 💜 by <a href="https://github.com/snw-mint/" target="_blank">Snow Mint</a></span>
+        </div>
+        <div class="footer-links">
+            <a href="privacy.html">Privacy Policy</a><span class="dot">•</span><a href="terms.html">Terms of Use</a>
+            <span class="dot">•</span><a href="#" onclick="openFeedback(event)">Send Feedback</a>
+            <span class="dot">•</span>
+            <a href="https://github.com/snw-mint/tunecharts" target="_blank" aria-label="View Source on GitHub" title="View Source on GitHub" style="display: inline-flex; align-items: center">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="transition: stroke 0.2s">
+                    <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+                </svg>
+            </a>
+            <span class="dot">•</span><a href="changelog.html" class="versao">v2.0.0</a>
+        </div>
+    </footer>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="result.js"></script>
+    <script src="feedback.js"></script>
+    <script src="version.js"></script>
+</body>
 </html>

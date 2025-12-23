@@ -1,374 +1,519 @@
+/* =========================================
+   CONFIGURAÇÃO E CONSTANTES GLOBAIS
+   ========================================= */
 const params = new URLSearchParams(window.location.search);
 const user1 = params.get("user1");
 const user2 = params.get("user2");
+
+// Redireciona se faltar algum usuário
 if (!user1 || !user2) window.location.href = "index.html";
-let exportData = null;
-let selectedFormat = "story";
-let selectedColor = "#bb86fc";
-const elements = {
-    loadingState: document.getElementById("loadingState"),
-    u1Img: document.getElementById("u1Img"),
-    u1Name: document.getElementById("u1Name"),
-    u1Scrobbles: document.getElementById("u1Scrobbles"),
-    u1List: document.getElementById("u1List"),
-    u1ListTitle: document.getElementById("u1ListTitle"),
-    u2Img: document.getElementById("u2Img"),
-    u2Name: document.getElementById("u2Name"),
-    u2Scrobbles: document.getElementById("u2Scrobbles"),
-    u2List: document.getElementById("u2List"),
-    u2ListTitle: document.getElementById("u2ListTitle"),
-    scoreRing: document.getElementById("scoreRing"),
-    scoreVal: document.getElementById("scoreVal"),
-    matchTitle: document.getElementById("matchTitle"),
-    commonList: document.getElementById("commonList"),
-    btnDownload: document.getElementById("btnDownload"),
-    formatModal: document.getElementById("formatModal"),
-    colorPickerModal: document.getElementById("colorPickerModal"),
-    exportContainer:
-        document.querySelector(".hidden-export-container") || document.getElementById("hidden-export-container"),
-};
-function getMatchInfo(score) {
-    let title = "VERY LOW";
-    let rankClass = "rank-very-low";
-    if (score >= 10) {
-        title = "LOW";
-        rankClass = "rank-low";
-    }
-    if (score >= 30) {
-        title = "MEDIUM";
-        rankClass = "rank-medium";
-    }
-    if (score >= 50) {
-        title = "HIGH";
-        rankClass = "rank-high";
-    }
-    if (score >= 70) {
-        title = "VERY HIGH";
-        rankClass = "rank-very-high";
-    }
-    if (score >= 90) {
-        title = "SUPER";
-        rankClass = "rank-super";
-    }
-    if (score === 100) {
-        title = "PERFECT!";
-        rankClass = "rank-perfect";
-    }
-    return { title, rankClass };
-}
-async function startMatcher() {
+
+// Ícones SVG para botões
+const iconDownload = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><path d="m8 12 4 4m0 0 4-4m-4 4V4M4 20h16"/></svg>`;
+const iconCheck = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+const iconLoading = `<svg class="spinner" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; animation: spin 1s linear infinite;"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>`;
+
+// Cache e Estado
+let spotifyTokenCache = null;
+let globalTopCommonImage = ""; // URL da imagem para o banner e background dos cards
+let selectedAccentColor = "#bb86fc";
+let selectedFormat = "story"; // 'story' ou 'square'
+let isGenerating = false;
+
+/* =========================================
+   INICIALIZAÇÃO (MAIN FLOW)
+   ========================================= */
+async function init() {
+    console.log(`Starting Match: ${user1} vs ${user2}`);
+    
+    // Configura eventos de UI (Modais, Botões)
+    setupUIEvents();
+
     try {
-        const limit = 100;
-        const period = "overall";
-        const [info1, info2, top1, top2] = await Promise.all([
-            fetch(`/api/?method=user.getinfo&user=${user1}`)
-                .then((r) => r.json())
-                .catch((e) => ({ error: !0 })),
-            fetch(`/api/?method=user.getinfo&user=${user2}`)
-                .then((r) => r.json())
-                .catch((e) => ({ error: !0 })),
-            fetch(`/api/?method=user.gettopartists&user=${user1}&limit=${limit}&period=${period}`)
-                .then((r) => r.json())
-                .catch((e) => ({ topartists: { artist: [] } })),
-            fetch(`/api/?method=user.gettopartists&user=${user2}&limit=${limit}&period=${period}`)
-                .then((r) => r.json())
-                .catch((e) => ({ topartists: { artist: [] } })),
+        // 1. Busca dados em paralelo (Perfil 1, Perfil 2, Top Artistas 1, Top Artistas 2)
+        const [u1Profile, u2Profile, u1Artists, u2Artists] = await Promise.all([
+            fetchLastFm("user.getinfo", user1),
+            fetchLastFm("user.getinfo", user2),
+            fetchLastFm("user.gettopartists", user1, "1month", 50), // Pegamos 50 para ter uma boa base de comparação
+            fetchLastFm("user.gettopartists", user2, "1month", 50)
         ]);
-        if (info1.error || !info1.user) throw new Error("User 1 not found.");
-        if (info2.error || !info2.user) throw new Error("User 2 not found.");
-        const profile1 = processProfile(info1, user1);
-        const profile2 = processProfile(info2, user2);
-        const list1 = top1.topartists?.artist || [];
-        const list2 = top2.topartists?.artist || [];
-        const analysis = analyzeTaste(list1, list2);
-        exportData = { p1: profile1, p2: profile2, match: analysis };
-        if (elements.loadingState) elements.loadingState.style.display = "none";
-        updateDashboard(profile1, profile2, analysis);
-    } catch (err) {
-        console.error(err);
-        if (elements.loadingState)
-            elements.loadingState.innerHTML = `<div style="padding:20px; text-align:center;">Error: ${err.message}<br><a href="index.html">Try again</a></div>`;
+
+        // 2. Processa Dados de Perfil
+        renderProfiles(u1Profile, u2Profile);
+        renderScrobbles(u1Profile, u2Profile);
+
+        // 3. Lógica de Match (Algoritmo de Comparação)
+        const matchResult = calculateCompatibility(u1Artists, u2Artists);
+
+        // 4. Renderiza as Listas na Tela e nos Cards Ocultos
+        renderLists(matchResult, u1Artists, u2Artists);
+
+        // 5. Atualiza Score e Textos
+        updateScoreUI(matchResult.score);
+
+        // 6. Busca Imagens (Spotify) - Assíncrono para não travar a UI
+        loadImages(matchResult.commonArtists, u1Artists, u2Artists);
+
+    } catch (error) {
+        console.error("Erro crítico:", error);
+        alert("Ops! Could not load data. Check if usernames are correct.");
+        window.location.href = "index.html";
     }
 }
-function processProfile(data, fallbackName) {
-    const u = data.user;
-    const count = parseInt(u.playcount || 0);
-    let formattedCount = count > 10000 ? (count / 1000).toFixed(1) + "k" : count.toLocaleString();
-    let imgUrl = "https://lastfm.freetls.fastly.net/i/u/avatar170s/818148bf682d429dc215c1705eb27b48";
-    if (u.image && u.image.length > 2 && u.image[3]["#text"]) imgUrl = u.image[3]["#text"];
-    return { name: u.realname || u.name || fallbackName, username: u.name, scrobbles: formattedCount, image: imgUrl };
+
+/* =========================================
+   LÓGICA DE DADOS (FETCH & MATCH)
+   ========================================= */
+
+// Wrapper para API do Last.fm
+async function fetchLastFm(method, user, period = "", limit = "") {
+    let url = `/api/?method=${method}&user=${user}`;
+    if (period) url += `&period=${period}`;
+    if (limit) url += `&limit=${limit}`;
+    
+    const res = await fetch(url);
+    const data = await res.json();
+    
+    if (data.error) throw new Error(data.message);
+    
+    // Normaliza retorno para facilitar
+    if (method === "user.gettopartists") {
+        return data.topartists.artist || [];
+    }
+    return data; // Para user.getinfo
 }
-function analyzeTaste(list1, list2) {
-    if (!Array.isArray(list1)) list1 = [];
-    if (!Array.isArray(list2)) list2 = [];
-    const map1 = new Map();
+
+// Algoritmo de Compatibilidade
+function calculateCompatibility(list1, list2) {
+    // Normaliza para array (caso a API retorne objeto único)
+    const arr1 = Array.isArray(list1) ? list1 : [list1];
+    const arr2 = Array.isArray(list2) ? list2 : [list2];
+
+    let commonArtists = [];
+    let score = 0;
+
+    // Mapa para busca rápida O(1)
     const map2 = new Map();
-    list1.forEach((a, i) => {
-        if (a && a.name) map1.set(a.name.toLowerCase(), { rank: i + 1, name: a.name });
-    });
-    list2.forEach((a, i) => {
-        if (a && a.name) map2.set(a.name.toLowerCase(), { rank: i + 1, name: a.name });
-    });
-    let common = [];
-    let unique1 = [];
-    let unique2 = [];
-    let points = 0;
-    map1.forEach((val, key) => {
-        if (map2.has(key)) {
-            const val2 = map2.get(key);
-            const strength = (101 - val.rank + (101 - val2.rank)) / 2;
-            points += strength;
-            common.push({ name: val.name, strength: strength });
-        } else {
-            unique1.push(val);
+    arr2.forEach((artist, index) => map2.set(artist.name.toLowerCase(), index));
+
+    arr1.forEach((artist, index1) => {
+        const name = artist.name.toLowerCase();
+        if (map2.has(name)) {
+            const index2 = map2.get(name);
+            
+            // Peso baseado na posição (quanto mais alto no top, mais pontos)
+            // Peso máximo = 50 (se ambos forem #1)
+            const weight1 = Math.max(0, 50 - index1);
+            const weight2 = Math.max(0, 50 - index2);
+            
+            const matchQuality = (weight1 + weight2) / 2; 
+            
+            commonArtists.push({
+                name: artist.name,
+                rank1: index1 + 1,
+                rank2: index2 + 1,
+                quality: matchQuality
+            });
         }
     });
-    map2.forEach((val, key) => {
-        if (!map1.has(key)) unique2.push(val);
+
+    // Ordena comuns por relevância
+    commonArtists.sort((a, b) => b.quality - a.quality);
+
+    // Cálculo do Score (0 a 100%)
+    // Fórmula baseada na quantidade de comuns e suas posições
+    // Se tiverem pelo menos 10 artistas em comum no top 50, já garante uma % alta
+    const baseScore = (commonArtists.length / 50) * 100; // Quantidade
+    const qualityScore = commonArtists.reduce((acc, curr) => acc + curr.quality, 0) / 10; // Qualidade
+    
+    let finalScore = Math.min(100, Math.round(baseScore * 0.4 + qualityScore * 0.6));
+    
+    // Boost se o top 1 for igual
+    if (commonArtists.length > 0 && commonArtists[0].rank1 === 1 && commonArtists[0].rank2 === 1) {
+        finalScore = Math.min(100, finalScore + 10);
+    }
+    if (commonArtists.length === 0) finalScore = Math.max(0, finalScore - 10);
+
+    return { score: finalScore, commonArtists };
+}
+
+/* =========================================
+   RENDERIZAÇÃO (DOM)
+   ========================================= */
+
+function renderProfiles(p1, p2) {
+    const u1 = p1.user;
+    const u2 = p2.user;
+
+    // Helper para imagem
+    const getImg = (u) => (u.image.find(i => i.size === "extralarge") || u.image[0])["#text"] || "";
+
+    // DOM Visível
+    document.getElementById("userName1").textContent = u1.realname || u1.name;
+    document.getElementById("userFoto1").src = getImg(u1);
+    document.getElementById("userName2").textContent = u2.realname || u2.name;
+    document.getElementById("userFoto2").src = getImg(u2);
+    
+    // Remove skeleton
+    document.querySelectorAll(".skeleton").forEach(el => el.classList.remove("skeleton"));
+
+    // DOM Cards Ocultos (Story & Square)
+    const hiddenIds = ["story", "sq"];
+    hiddenIds.forEach(prefix => {
+        document.getElementById(`${prefix}UserName1`).textContent = u1.name;
+        document.getElementById(`${prefix}UserImg1`).src = getImg(u1);
+        document.getElementById(`${prefix}UserName2`).textContent = u2.name;
+        document.getElementById(`${prefix}UserImg2`).src = getImg(u2);
+        
+        // Configura CORS para o html2canvas não quebrar
+        document.getElementById(`${prefix}UserImg1`).crossOrigin = "anonymous";
+        document.getElementById(`${prefix}UserImg2`).crossOrigin = "anonymous";
     });
-    let pct = (points / 1500) * 100;
-    if (common.length > 20) pct += 10;
-    else if (common.length > 10) pct += 5;
-    pct = Math.min(100, Math.max(0, Math.round(pct)));
-    if (common.length === 0) pct = 0;
-    common.sort((a, b) => b.strength - a.strength);
-    unique1.sort((a, b) => a.rank - b.rank);
-    unique2.sort((a, b) => a.rank - b.rank);
-    return { score: pct, common: common.slice(0, 5), unique1: unique1.slice(0, 7), unique2: unique2.slice(0, 7) };
 }
-function updateDashboard(p1, p2, data) {
-    fillProfileDOM(elements.u1Img, elements.u1Name, elements.u1Scrobbles, p1);
-    fillProfileDOM(elements.u2Img, elements.u2Name, elements.u2Scrobbles, p2);
-    elements.u1ListTitle.textContent = `${p1.username}'s Vibe`;
-    elements.u2ListTitle.textContent = `${p2.username}'s Vibe`;
-    renderList(elements.u1List, data.unique1, "Unique");
-    renderList(elements.u2List, data.unique2, "Unique");
-    renderList(elements.commonList, data.common, "Shared");
-    const info = getMatchInfo(data.score);
-    elements.matchTitle.textContent = info.title;
-    elements.matchTitle.classList.remove("skeleton-text");
-    elements.scoreRing.classList.remove("skeleton");
-    elements.scoreRing.classList.add(info.rankClass);
-    if (elements.btnDownload) {
-        elements.btnDownload.textContent = "Share Result";
-        elements.btnDownload.disabled = !1;
-    }
-    animateValue(elements.scoreVal, 0, data.score, 1500);
+
+function renderScrobbles(p1, p2) {
+    // Apenas para mostrar no topo da página
+    const s1 = parseInt(p1.user.playcount).toLocaleString("pt-BR");
+    const s2 = parseInt(p2.user.playcount).toLocaleString("pt-BR");
+    
+    document.getElementById("userScrobbles1").textContent = s1;
+    document.getElementById("userScrobbles2").textContent = s2;
 }
-function fillProfileDOM(imgEl, nameEl, statEl, data) {
-    imgEl.crossOrigin = "Anonymous";
-    imgEl.src = data.image;
-    imgEl.classList.remove("skeleton");
-    nameEl.textContent = data.name;
-    nameEl.classList.remove("skeleton-text");
-    statEl.textContent = `${data.scrobbles} scrobbles`;
-    statEl.classList.remove("skeleton-text-sm");
+
+function updateScoreUI(score) {
+    // Score na tela
+    const scoreEl = document.getElementById("compatibilityScore");
+    let current = 0;
+    const interval = setInterval(() => {
+        current += 2;
+        if (current >= score) {
+            current = score;
+            clearInterval(interval);
+        }
+        scoreEl.textContent = current;
+    }, 20);
+
+    // Texto descritivo
+    let text = "Stranger Vibes";
+    if (score > 30) text = "Musical Acquaintances";
+    if (score > 50) text = "Vibe Buddies";
+    if (score > 70) text = "Sonic Soulmates";
+    if (score > 90) text = "A Perfect Match!";
+    document.getElementById("commonContent").textContent = text;
+    document.getElementById("storySharedText").textContent = text;
+
+    // Score nos Cards
+    document.getElementById("storyScoreValue").textContent = score + "%";
+    document.getElementById("sqScoreValue").textContent = score + "%";
 }
-function renderList(container, items, type) {
-    let html = "";
-    if (!items || items.length === 0) {
-        html = `<div style="text-align:center; padding:15px; color:#666; font-size:0.9em;">Nothing here.</div>`;
+
+function renderLists(matchData, list1, list2) {
+    // Top 5 User 1
+    fillColumn("cardUser1", list1, false); // Tela
+    fillHiddenColumn("storyList1", list1, "story"); // Card Story
+    fillHiddenColumn("sqCol1List", list1, "square"); // Card Square
+
+    // Top 5 User 2
+    fillColumn("cardUser2", list2, false);
+    fillHiddenColumn("storyList2", list2, "story");
+    fillHiddenColumn("sqCol2List", list2, "square");
+
+    // Top 5 Shared (Common)
+    // Se não tiver comuns suficientes, completamos com vazio ou mensagem
+    if (matchData.commonArtists.length === 0) {
+        document.querySelector("#cardShared .lista-top").innerHTML = "<div style='padding:20px; text-align:center; color:#666;'>No common artists found in Top 50.</div>";
     } else {
-        items.forEach((item) => {
-            const badgeHtml =
-                type === "Shared"
-                    ? `<span class="t-badge">SHARED</span>`
-                    : `<span class="t-badge-unique">#${item.rank}</span>`;
-            html += `<div class="t-row"><span class="t-name">${item.name}</span>${badgeHtml}</div>`;
-        });
+        fillColumn("cardShared", matchData.commonArtists, true);
     }
+}
+
+// Preenche colunas visíveis (HTML da página)
+function fillColumn(cardId, items, isShared) {
+    const container = document.querySelector(`#${cardId} .lista-top`);
+    if (!container) return;
+    
+    let html = "";
+    // Mostramos Top 5 na tela
+    const limit = 5;
+    const data = items.slice(0, limit);
+
+    data.forEach((item, i) => {
+        const isTop1 = i === 0;
+        const name = item.name;
+        // Se for lista Shared, item tem rank1 e rank2, senão usa i+1
+        const rankDisplay = isShared ? "" : `#${i + 1}`; 
+        
+        if (isTop1) {
+            const imgId = `img-${cardId}-0`;
+            html += `
+            <div class="chart-item top-1">
+                <div id="${imgId}" class="cover-placeholder"></div>
+                <div class="text-content">
+                    <span class="rank-number">#1</span>
+                    <div><span>${name}</span></div>
+                </div>
+            </div>`;
+        } else {
+            html += `<div class="chart-item">${rankDisplay} ${name}</div>`;
+        }
+    });
+
     container.innerHTML = html;
 }
-function animateValue(obj, start, end, duration) {
-    let startTimestamp = null;
-    const step = (timestamp) => {
-        if (!startTimestamp) startTimestamp = timestamp;
-        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-        obj.innerHTML = Math.floor(progress * (end - start) + start);
-        if (progress < 1) window.requestAnimationFrame(step);
-    };
-    window.requestAnimationFrame(step);
-}
-if (elements.btnDownload) {
-    elements.btnDownload.addEventListener("click", () => {
-        if (!exportData) return;
-        if (elements.formatModal) elements.formatModal.style.display = "flex";
+
+// Preenche colunas dos Cards Ocultos (HTML para imagem)
+function fillHiddenColumn(elementId, items, format) {
+    const container = document.getElementById(elementId);
+    if (!container) return;
+
+    let html = "";
+    // Story: Top 5, Square: Top 5
+    const limit = 5; 
+    const data = items.slice(0, limit);
+
+    data.forEach((item, i) => {
+        const rank = i + 1;
+        const name = item.name;
+
+        if (format === "story") {
+            // Estilo Story
+            html += `
+            <div class="story-item ${i === 0 ? 'top-1' : ''}">
+                <span class="story-rank">#${rank}</span>
+                <span style="flex:1; overflow:hidden; text-overflow:ellipsis;">${name}</span>
+            </div>`;
+        } else {
+            // Estilo Square (ul > li)
+            html += `
+            <li class="${i === 0 ? 'top-1' : ''}">
+                <span class="sq-v2-rank">#${rank}</span>
+                <span class="sq-v2-text">${name}</span>
+            </li>`;
+        }
     });
+
+    container.innerHTML = html;
 }
-function selectFormat(fmt) {
-    selectedFormat = fmt;
-    if (elements.formatModal) elements.formatModal.style.display = "none";
-    const colorModal = document.getElementById("colorPickerModal");
-    if (colorModal) colorModal.style.display = "flex";
-    else generateFinalImage();
+
+/* =========================================
+   IMAGENS & SPOTIFY
+   ========================================= */
+
+async function loadImages(commonArtists, list1, list2) {
+    // Prioridade para Banner: 1º Comum -> Se não, 1º do User 1
+    const bannerArtist = commonArtists.length > 0 ? commonArtists[0].name : list1[0].name;
+
+    // 1. Busca imagem do Banner (e salva globalmente)
+    const bannerUrl = await buscarImagemSpotify(bannerArtist, "artist");
+    if (bannerUrl) {
+        globalTopCommonImage = bannerUrl;
+        
+        // Atualiza Banner da Página
+        const bannerEl = document.getElementById("bannerBackground");
+        bannerEl.style.backgroundImage = `url('${bannerUrl}')`;
+        bannerEl.style.opacity = 1;
+        
+        // Atualiza Top 1 Shared na tela (se existir)
+        updateImageInDom("img-cardShared-0", bannerUrl);
+    }
+
+    // 2. Busca Imagem Top 1 User 1
+    if (list1.length > 0) {
+        const url1 = await buscarImagemSpotify(list1[0].name, "artist");
+        if (url1) updateImageInDom("img-cardUser1-0", url1);
+    }
+
+    // 3. Busca Imagem Top 1 User 2
+    if (list2.length > 0) {
+        const url2 = await buscarImagemSpotify(list2[0].name, "artist");
+        if (url2) updateImageInDom("img-cardUser2-0", url2);
+    }
 }
-function selectColor(color) {
-    selectedColor = color;
-    const colorModal = document.getElementById("colorPickerModal");
-    if (colorModal) colorModal.style.display = "none";
-    generateFinalImage();
+
+function updateImageInDom(elementId, url) {
+    const el = document.getElementById(elementId);
+    if (el) {
+        const img = new Image();
+        img.src = url;
+        img.onload = () => {
+            el.innerHTML = "";
+            el.appendChild(img);
+        };
+    }
 }
-window.generateExport = function (format) {
-    selectFormat(format);
-};
-async function generateFinalImage() {
-    const btn = elements.btnDownload;
-    const originalText = btn.textContent;
-    btn.textContent = "Creating...";
-    btn.disabled = !0;
+
+async function obterTokenSpotify() {
+    if (spotifyTokenCache) return spotifyTokenCache;
     try {
-        const { p1, p2, match } = exportData;
-        const info = getMatchInfo(match.score);
-        const pre = selectedFormat === "square" ? "sq-" : "st-";
-        const cardId = selectedFormat === "square" ? "exportSquare" : "exportStory";
-        const cardElement = document.getElementById(cardId);
-        if (!cardElement) throw new Error("Export card not found");
-        const mask = document.createElement("div");
-        mask.id = "export-mask";
-        mask.style.position = "fixed";
-        mask.style.inset = "0";
-        mask.style.width = "100%";
-        mask.style.height = "100%";
-        mask.style.background = "radial-gradient(circle at top right, #2a0040, #0f0f0f 60%)";
-        mask.style.zIndex = "-50";
-        document.body.appendChild(mask);
-        const container = elements.exportContainer;
-        if (container) {
-            container.style.display = "block";
-            container.style.visibility = "visible";
-            container.style.position = "fixed";
-            container.style.top = "0";
-            container.style.left = "0";
-            container.style.zIndex = "-9999";
+        const res = await fetch("/api/spotify-token");
+        const data = await res.json();
+        if (data.access_token) {
+            spotifyTokenCache = data.access_token;
+            return data.access_token;
         }
-        const img1 = document.getElementById(`${pre}p1-img`);
-        const img2 = document.getElementById(`${pre}p2-img`);
-        img1.crossOrigin = "Anonymous";
-        img2.crossOrigin = "Anonymous";
-        const ts = new Date().getTime();
-        img1.src = p1.image + (p1.image.includes("?") ? "&" : "?") + "t=" + ts;
-        img2.src = p2.image + (p2.image.includes("?") ? "&" : "?") + "t=" + ts;
-        await Promise.all([
-            new Promise((r) => {
-                if (img1.complete) r();
-                else img1.onload = r;
-                img1.onerror = r;
-            }),
-            new Promise((r) => {
-                if (img2.complete) r();
-                else img2.onload = r;
-                img2.onerror = r;
-            }),
-        ]);
-        document.getElementById(`${pre}p1-name`).textContent = p1.name;
-        document.getElementById(`${pre}p2-name`).textContent = p2.name;
-        document.getElementById(`${pre}stat-user1`).textContent = p1.username;
-        document.getElementById(`${pre}stat-val1`).textContent = `${p1.scrobbles}`;
-        document.getElementById(`${pre}stat-user2`).textContent = p2.username;
-        document.getElementById(`${pre}stat-val2`).textContent = `${p2.scrobbles}`;
-        document.getElementById(`${pre}score-val`).textContent = match.score;
-        const crown = document.getElementById(`${pre}crown`);
-        if (crown) crown.style.display = match.score === 100 ? "block" : "none";
-        document.getElementById(`${pre}match-title`).textContent = info.title;
-        if (selectedFormat === "square") {
-            const sqTextEl = document.getElementById("sq-shared-text");
-            if (sqTextEl) {
-                if (match.common.length > 0) {
-                    const topArtists = match.common
-                        .slice(0, 3)
-                        .map((a) => `<span>${a.name}</span>`)
-                        .join(", ");
-                    sqTextEl.innerHTML = `You both vibe to ${topArtists}.`;
-                } else {
-                    sqTextEl.innerHTML = `You both have distinct musical tastes.`;
-                }
-            }
+    } catch (e) {
+        console.warn("Falha token Spotify", e);
+    }
+    return null;
+}
+
+async function buscarImagemSpotify(artist, type) {
+    const token = await obterTokenSpotify();
+    if (!token) return null;
+    
+    const q = encodeURIComponent(`artist:"${artist}"`);
+    try {
+        const url = `https://api.spotify.com/v1/search?q=${q}&type=artist&limit=1`;
+        const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+        const data = await res.json();
+        if (data.artists?.items?.length > 0) {
+            return data.artists.items[0].images[0]?.url;
         }
-        if (selectedFormat === "story") {
-            const listCont = document.getElementById("st-common-list-container");
-            let listHtml = `<div class="list-header">SHARED ARTISTS</div>`;
-            if (match.common.length === 0)
-                listHtml +=
-                    "<div style='text-align:center; padding:30px; font-size:1.5rem; color:#666'>No shared artists found.</div>";
-            else
-                match.common.slice(0, 5).forEach((m, i) => {
-                    listHtml += `<div class="list-row ${i === 0 ? "top-1" : ""}"><strong>${m.name}</strong><span class="badge-shared">SHARED</span></div>`;
-                });
-            listCont.innerHTML = listHtml;
-        }
-        aplicarCoresMatch(cardElement, selectedColor, selectedFormat, info.rankClass);
-        await new Promise((r) => setTimeout(r, 500));
-        const canvas = await html2canvas(cardElement, {
-            scale: 1.5,
-            useCORS: !0,
-            allowTaint: !0,
-            backgroundColor: "#0f0f0f",
-            logging: !1,
-            width: 1080,
-            height: selectedFormat === "square" ? 1080 : 1920,
+    } catch (e) {
+        console.warn("Erro imagem Spotify", e);
+    }
+    return null;
+}
+
+/* =========================================
+   UI EVENTS & GERAÇÃO DE RELATÓRIO
+   ========================================= */
+
+function setupUIEvents() {
+    const formatModal = document.getElementById("formatPickerModal");
+    const colorModal = document.getElementById("colorPickerModal");
+    const genBtn = document.getElementById("btnGerarRelatorio");
+    const confirmColorBtn = document.getElementById("confirmColumnsBtn"); // "Choose Color"
+
+    // Abrir modal de formato
+    genBtn.addEventListener("click", () => formatModal.style.display = "flex");
+
+    // Fechar modais
+    document.querySelectorAll(".close-button").forEach(btn => {
+        btn.addEventListener("click", function() {
+            const modalId = this.getAttribute("data-modal");
+            document.getElementById(modalId).style.display = "none";
         });
+    });
+
+    // Seleção de Formato
+    document.querySelectorAll(".format-option").forEach(btn => {
+        btn.onclick = (e) => {
+            selectedFormat = e.currentTarget.getAttribute("data-format");
+            // Highlight visual
+            document.querySelectorAll(".format-option").forEach(b => b.style.borderColor = "rgba(255,255,255,0.1)");
+            e.currentTarget.style.borderColor = "#bb86fc";
+        };
+    });
+
+    // Botão "Choose Color" (que na vdd vai para o color picker)
+    confirmColorBtn.addEventListener("click", () => {
+        formatModal.style.display = "none";
+        colorModal.style.display = "flex";
+    });
+
+    // Seleção de Cor e Geração Final
+    document.querySelectorAll(".color-option").forEach(btn => {
+        btn.onclick = (e) => {
+            if (isGenerating) return;
+            selectedAccentColor = e.currentTarget.getAttribute("data-color");
+            colorModal.style.display = "none";
+            generateFinalImage();
+        };
+    });
+    
+    // Fechar ao clicar fora
+    window.onclick = (e) => {
+        if (e.target == formatModal) formatModal.style.display = "none";
+        if (e.target == colorModal) colorModal.style.display = "none";
+    }
+}
+
+async function generateFinalImage() {
+    isGenerating = true;
+    const btn = document.getElementById("btnGerarRelatorio");
+    btn.innerHTML = `${iconLoading} Generating...`;
+    btn.disabled = true;
+
+    // Seleciona o card correto baseando no formato
+    let targetId = selectedFormat === "story" ? "storyCard" : "squareCardV2";
+    let targetEl = document.getElementById(targetId);
+    let width = selectedFormat === "story" ? 1080 : 1080;
+    let height = selectedFormat === "story" ? 1920 : 1080;
+
+    try {
+        // Aplica cores dinâmicas antes de tirar o print
+        applyDynamicColors(targetEl, selectedAccentColor, selectedFormat);
+
+        // Pequeno delay para renderizar CSS
+        await new Promise(r => setTimeout(r, 500));
+
+        const canvas = await html2canvas(targetEl, {
+            scale: 1, // Já está em tamanho HD no CSS
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: "#0f0f0f",
+            width: width,
+            height: height,
+            logging: false
+        });
+
         const link = document.createElement("a");
-        link.download = `TuneCharts-Match-${user1}-vs-${user2}.png`;
+        link.download = `Match-${user1}-vs-${user2}-${selectedFormat}.png`;
         link.href = canvas.toDataURL("image/png");
         link.click();
-        btn.textContent = "Saved!";
-    } catch (e) {
-        console.error("Export Error:", e);
+
+        btn.innerHTML = `${iconCheck} Saved!`;
+        btn.style.backgroundColor = "#28a745";
+
+    } catch (err) {
+        console.error(err);
         alert("Error generating image.");
+        btn.innerHTML = "Error :(";
     } finally {
-        if (elements.exportContainer) {
-            elements.exportContainer.style.display = "none";
-            elements.exportContainer.style.left = "-10000px";
-        }
-        const mask = document.getElementById("export-mask");
-        if (mask) mask.remove();
         setTimeout(() => {
-            btn.textContent = originalText;
-            btn.disabled = !1;
-        }, 2000);
+            btn.innerHTML = `${iconDownload} Generate Report`;
+            btn.disabled = false;
+            btn.style.backgroundColor = "";
+            isGenerating = false;
+        }, 3000);
     }
 }
-function aplicarCoresMatch(card, color, format, rankClass) {
-    card.style.background = `radial-gradient(circle at top right, ${color}66, #0f0f0f 60%)`;
-    const title = card.querySelector(".match-title");
-    if (title) title.style.textShadow = `0 0 40px ${color}66`;
-    const ring = card.querySelector(".score-circle");
-    if (ring) {
-        ring.style.borderColor = "#fff";
-        ring.style.boxShadow = `0 0 100px ${color}44`;
-    }
-    card.querySelectorAll(".p-img").forEach((img) => {
-        img.style.borderColor = color;
-    });
-    card.querySelectorAll(".stat-pill").forEach((el) => {
-        el.style.color = color;
-        el.style.borderColor = color + "44";
-        el.style.backgroundColor = color + "22";
-    });
+
+function applyDynamicColors(card, color, format) {
     if (format === "story") {
-        card.querySelectorAll(".list-row.top-1").forEach((el) => {
+        // Elementos Story
+        card.querySelectorAll(".story-rank, .stat-label, .story-brand").forEach(el => el.style.color = color);
+        card.querySelectorAll(".story-column h3").forEach(el => el.style.borderLeftColor = color);
+        card.querySelectorAll(".story-item.top-1, .story-stat").forEach(el => {
             el.style.borderColor = color;
-            el.style.backgroundColor = color + "33";
+            el.style.backgroundColor = color + "22"; // 22 = baixa opacidade hex
         });
-        card.querySelectorAll(".list-row").forEach((el) => {
-            if (!el.classList.contains("top-1")) {
-                el.style.borderColor = color + "33";
-            }
-        });
-        card.querySelectorAll(".badge-shared").forEach((el) => {
-            el.style.color = color;
-        });
-    }
-    if (format === "square") {
-        const sub = card.querySelector(".match-subtitle");
-        if (sub) {
-            sub.querySelectorAll("span").forEach((s) => (s.style.color = color));
+
+        // Background com Imagem do Artista em Comum
+        const headerBg = card.querySelector(".story-header");
+        if (globalTopCommonImage) {
+            headerBg.style.background = `
+                linear-gradient(to bottom, ${color}66 0%, transparent 40%),
+                linear-gradient(to top, #0f0f0f 0%, rgba(15,15,15,0.6) 50%, transparent 100%),
+                url('${globalTopCommonImage}') no-repeat center center / cover
+            `;
+        } else {
+            headerBg.style.background = `radial-gradient(circle at top right, ${color}66, #0f0f0f)`;
         }
+
+    } else {
+        // Elementos Square
+        card.querySelectorAll(".sq-v2-rank, .sq-v2-stat-label, .sq-v2-brand").forEach(el => el.style.color = color);
+        card.querySelectorAll(".sq-v2-column h3").forEach(el => el.style.borderLeftColor = color);
+        card.querySelectorAll(".sq-v2-list li.top-1, .sq-v2-stat, .sq-v2-avatar").forEach(el => {
+            el.style.borderColor = color;
+            if(!el.classList.contains('sq-v2-avatar')) el.style.backgroundColor = color + "22";
+        });
+        
+        card.style.background = `radial-gradient(circle at top right, ${color}44, #0f0f0f 60%)`;
     }
 }
-window.onclick = function (event) {
-    if (event.target == elements.formatModal) elements.formatModal.style.display = "none";
-    if (event.target == elements.colorPickerModal) elements.colorPickerModal.style.display = "none";
-};
-if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", startMatcher);
-else startMatcher();
+
+// Start
+document.addEventListener("DOMContentLoaded", init);
