@@ -212,28 +212,44 @@ function fillColumn(cardId, items, isShared) {
     if (!container) return;
     
     let html = "";
-    const limit = 5;
-    const data = items.slice(0, limit);
-
-    data.forEach((item, i) => {
+    
+    // LOOP FORÇADO DE 5 ITENS (Para preencher vazio se precisar)
+    for (let i = 0; i < 5; i++) {
+        const item = items[i]; // Pode ser undefined se não tiver match suficiente
         const isTop1 = i === 0;
-        const name = item.name;
-        const rankDisplay = isShared ? "" : `#${i + 1}`; 
+        
+        // Se item existe usa o nome, se não usa placeholder
+        const name = item ? item.name : "---"; 
+        const rankDisplay = `#${i + 1}`; // Sempre mostra o Rank
         
         if (isTop1) {
-            const imgId = `img-${cardId}-0`;
-            html += `
-            <div class="chart-item top-1">
-                <div id="${imgId}" class="cover-placeholder"></div>
-                <div class="text-content">
-                    <span class="rank-number">#1</span>
-                    <div><span>${name}</span></div>
-                </div>
-            </div>`;
+            // Se for Top 1 e existir dado
+            if (item) {
+                const imgId = `img-${cardId}-0`;
+                html += `
+                <div class="chart-item top-1">
+                    <div id="${imgId}" class="cover-placeholder"></div>
+                    <div class="text-content">
+                        <span class="rank-number">#1</span>
+                        <div><span>${name}</span></div>
+                    </div>
+                </div>`;
+            } else {
+                 // Top 1 vazio (caso muito raro de 0 matches)
+                 html += `
+                <div class="chart-item top-1">
+                    <div class="cover-placeholder" style="background:#222"></div>
+                    <div class="text-content"><div><span>No Data</span></div></div>
+                </div>`;
+            }
         } else {
-            html += `<div class="chart-item">${rankDisplay} ${name}</div>`;
+            // Itens 2 a 5 (Comuns ou Normais)
+            const cssClass = item ? "chart-item" : "chart-item skeleton"; // skeleton visual para vazio
+            const style = item ? "" : "opacity: 0.3;"; // Deixa apagadinho se for vazio
+            html += `<div class="${cssClass}" style="${style}">${rankDisplay} ${name}</div>`;
         }
-    });
+    }
+
     container.innerHTML = html;
 }
 
@@ -242,27 +258,30 @@ function fillHiddenColumn(elementId, items, format) {
     if (!container) return;
 
     let html = "";
-    const limit = 5; 
-    const data = items.slice(0, limit);
-
-    data.forEach((item, i) => {
+    
+    // LOOP FORÇADO DE 5 ITENS
+    for (let i = 0; i < 5; i++) {
+        const item = items[i];
         const rank = i + 1;
-        const name = item.name;
+        const name = item ? item.name : "---";
+        const isEmpty = !item;
 
         if (format === "story") {
+            // Estilo Story
             html += `
-            <div class="story-item ${i === 0 ? 'top-1' : ''}">
+            <div class="story-item ${i === 0 ? 'top-1' : ''}" style="${isEmpty ? 'opacity:0.4' : ''}">
                 <span class="story-rank">#${rank}</span>
                 <span style="flex:1; overflow:hidden; text-overflow:ellipsis;">${name}</span>
             </div>`;
         } else {
+            // Estilo Square (ul > li)
             html += `
-            <li class="${i === 0 ? 'top-1' : ''}">
+            <li class="${i === 0 ? 'top-1' : ''}" style="${isEmpty ? 'opacity:0.4' : ''}">
                 <span class="sq-v2-rank">#${rank}</span>
                 <span class="sq-v2-text">${name}</span>
             </li>`;
         }
-    });
+    }
 
     container.innerHTML = html;
 }
@@ -393,16 +412,15 @@ async function generateFinalImage() {
     let width = 1080;
     let height = selectedFormat === "story" ? 1920 : 1080;
 
-    // --- MUDANÇA IMPORTANTE PARA O SQUARE CARD ---
+    // --- LÓGICA DO CARD SQUARE ---
     if (selectedFormat === "square") {
-        // Coloca o NOME DO USUÁRIO no título da coluna
+        // Injeta o NOME REAL no título da coluna
         document.getElementById("sqColTitle1").textContent = globalDisplayName1;
         document.getElementById("sqColTitle2").textContent = globalDisplayName2;
     } else {
-        // No story mantemos "User 1" ou podemos por nome também se quiser, 
-        // mas a lógica padrão do story era "User 1" (title fixo). 
-        // Se quiser mudar no story tb, adicione aqui.
-        // Por padrão no HTML está "User 1" e "User 2".
+        // No Story volta ao padrão (caso o usuário tenha trocado e voltado)
+        document.getElementById("storyColTitle1").textContent = "User 1"; // ou deixe como estava
+        document.getElementById("storyColTitle2").textContent = "User 2";
     }
 
     try {

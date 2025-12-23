@@ -11,9 +11,7 @@
     pointer-events: none;
 }
 
-/* =========================================
-   CARD STORY (1080x1920)
-   ========================================= */
+/* --- CARD STORY (1080x1920) --- */
 #storyCard {
     width: 1080px;
     height: 1920px;
@@ -21,6 +19,7 @@
     position: relative;
     overflow: hidden;
     flex-shrink: 0;
+    box-shadow: none;
     display: flex;
     flex-direction: column;
 }
@@ -32,29 +31,27 @@
     align-items: center;
     justify-content: center;
     position: relative;
-    /* O background vem do JS, mas definimos o z-index base */
-    z-index: 0; 
+    z-index: 2;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center center;
 }
 
-/* O gradiente preto de sobreposição */
 .story-header::before {
     content: "";
     position: absolute;
     inset: 0;
     background: linear-gradient(to bottom, rgba(15,15,15,0.4) 0%, #0f0f0f 100%);
-    z-index: 1; /* Fica acima da imagem de fundo */
-    pointer-events: none;
+    z-index: 1;
 }
 
-/* O Conteúdo (Texto e Imagens) deve ficar ACIMA do gradiente */
 .story-header-content {
     display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: center;
     width: 100%;
-    position: relative; 
-    z-index: 10; /* Z-INDEX ALTO PARA FICAR POR CIMA DE TUDO */
+    z-index: 3;
     margin: 0 auto;
     gap: 40px;
 }
@@ -99,7 +96,6 @@
     font-style: italic;
     color: rgba(255,255,255,0.3);
     text-shadow: 0 4px 20px rgb(0 0 0 / 0.5);
-    z-index: 10;
 }
 
 .story-body {
@@ -111,16 +107,7 @@
     z-index: 2;
 }
 
-/* Texto de compatibilidade abaixo do header */
-.story-dynamic-text {
-    position: relative;
-    z-index: 10;
-    color: #ccc;
-    font-size: 1.2rem;
-    margin-top: 10px;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-}
+/* Removido estilo .story-dynamic-text pois removemos o HTML */
 
 .story-column {
     flex: 1;
@@ -231,14 +218,14 @@
 }
 
 /* =========================================
-   CARD SQUARE (1080x1080) - CORREÇÃO DE LAYOUT
+   CARD SQUARE (1080x1080) - MODIFICADO
    ========================================= */
 #squareCardV2 {
     width: 1080px;
     height: 1080px;
     display: flex;
     flex-direction: column;
-    padding: 60px;
+    padding: 50px 60px 40px; 
     color: #fff;
     position: relative;
     overflow: hidden;
@@ -247,47 +234,61 @@
     flex-shrink: 0;
 }
 
-/* Header corrigido para usar flexbox e separar os itens */
+/* Header Ajustado para Avatares Grandes */
 .sq-v2-header {
     display: flex;
-    justify-content: space-between; /* Joga um pra esquerda, um pra direita */
     align-items: center;
-    height: 320px;
-    width: 100%;
-    margin-bottom: 40px;
-    position: relative; /* Para posicionar o VS no meio */
+    justify-content: space-between; 
+    padding-bottom: 20px;
+    margin-bottom: 30px;
+    height: 300px; /* Altura fixa para garantir espaço */
+    position: relative;
 }
 
-/* Blocos dos usuários */
 .sq-duo-block {
     display: flex;
     flex-direction: column;
+    width: 300px;
     z-index: 2;
 }
 
-.sq-duo-block img {
-    width: 280px;  /* Avatar grande */
-    height: 280px;
-    object-fit: cover;
+.sq-duo-block:first-child {
+    align-items: flex-start;
+    text-align: left;
+}
+
+.sq-duo-block:last-child {
+    align-items: flex-end;
+    text-align: right;
+}
+
+.sq-v2-avatar {
+    width: 250px;  /* AUMENTADO (antes 150px) */
+    height: 250px; /* AUMENTADO */
     border-radius: 50%;
-    border: 8px solid rgba(255,255,255,0.2);
-    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    border: 8px solid #bb86fc; /* Borda mais grossa */
+    object-fit: cover;
+    flex-shrink: 0;
+    margin-bottom: 0; /* Removemos margem pois não tem texto abaixo */
+    box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+    background-color: #222;
 }
 
+/* NOME ESCONDIDO (Pois vai para o título da coluna) */
 .sq-v2-username {
-    display: none !important; /* Esconde nome antigo */
+    display: none !important;
 }
 
-/* VS centralizado absolutamente */
+/* VS Centralizado Absolutamente */
 .sq-duo-vs {
+    font-size: 6rem;
+    font-weight: 900;
+    font-style: italic;
+    color: rgba(255,255,255,0.1); /* Mais sutil para ficar atrás se precisar */
     position: absolute;
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
-    font-size: 6rem;
-    font-weight: 900;
-    font-style: italic;
-    color: rgba(255,255,255,0.1);
     z-index: 1;
 }
 
@@ -300,27 +301,29 @@
 
 .sq-v2-column {
     flex: 1;
+    width: 10%;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    background-color: rgb(255 255 255 / 0.05);
+    background-color: rgb(255 255 255 / 0.08);
     border: 1px solid rgb(255 255 255 / 0.1);
-    padding: 30px;
+    padding: 30px 40px;
     border-radius: 30px;
 }
 
-/* Título da coluna (Nome do User) */
+/* Título agora recebe o Nome do Usuário */
 .sq-v2-column h3 {
-    font-size: 2rem;
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #fff;
+    /* Remover text-transform uppercase se quiser o nome original */
+    margin-bottom: 25px;
+    border-left: 6px solid #bb86fc;
+    padding-left: 15px;
+    flex-shrink: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    margin-bottom: 20px;
-    text-align: center;
-    border-bottom: 2px solid rgba(255,255,255,0.1);
-    padding-bottom: 15px;
-    /* Remove a borda lateral antiga do design anterior */
-    border-left: none !important; 
 }
 
 .sq-v2-list {
@@ -329,29 +332,33 @@
     flex-direction: column;
     gap: 15px;
     padding: 0;
-    margin: 0;
+    overflow: hidden;
 }
 
 .sq-v2-list li {
     display: flex;
     align-items: center;
-    padding: 10px 15px;
-    font-size: 1.8rem;
+    padding: 10px 0 10px 20px;
+    font-size: 1.9rem;
     font-weight: 600;
+    min-width: 0;
     color: #f0f0f0;
-    border-radius: 12px;
+    background-color: #fff0;
+    border: none;
 }
 
 .sq-v2-text {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    flex: 1;
+    max-width: 100%;
+    display: inline-block;
 }
 
 .sq-v2-list li span.sq-v2-rank {
-    margin-right: 15px;
-    min-width: 35px;
+    margin-right: 20px;
+    min-width: 40px;
+    flex-shrink: 0;
     color: #fff;
     opacity: 0.7;
     font-weight: 700;
@@ -360,10 +367,11 @@
 .sq-v2-list li.top-1 {
     font-size: 2rem;
     font-weight: 900;
-    padding: 15px;
+    padding: 20px;
     background-color: rgb(187 134 252 / 0.2);
     color: #fff;
     border: 2px solid rgb(187 134 252 / 0.3);
+    border-radius: 15px;
 }
 
 .sq-v2-list li.top-1 span.sq-v2-rank { 
@@ -373,17 +381,17 @@
 
 .sq-v2-footer {
     display: flex;
-    flex-direction: row; /* Footer em linha */
+    flex-direction: column;
     align-items: center;
-    justify-content: space-between;
+    gap: 20px;
     padding-top: 30px;
     margin-top: auto;
     flex-shrink: 0;
 }
 
 .sq-v2-brand {
-    font-size: 1.2rem;
-    font-weight: 600;
+    font-size: 1rem;
+    font-weight: 500;
     color: #8f8f8f;
     opacity: 0.6;
     text-transform: uppercase;
@@ -391,24 +399,26 @@
 }
 
 .sq-v2-stat {
+    width: 80%;
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 20px;
-    padding: 15px 30px;
+    padding: 20px 30px;
     background-color: rgb(187 134 252 / 0.15);
     border: 2px solid rgb(187 134 252 / 0.3);
-    border-radius: 50px;
+    border-radius: 30px;
 }
 
 .sq-v2-stat-label {
-    font-size: 1.5rem;
+    font-size: 1.8rem;
     font-weight: 700;
     color: #e0baff;
+    opacity: 0.9;
     text-transform: uppercase;
 }
 
 .sq-v2-stat-value {
-    font-size: 2.5rem;
+    font-size: 3rem;
     font-weight: 900;
     color: #fff;
     line-height: 1;
