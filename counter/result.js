@@ -69,14 +69,15 @@ function configurarTogglePeriodo() {
         });
     });
 }
+
 function moveGlider(targetButton) {
     if (!elements.glider || !targetButton) return;
-    const parentRect = targetButton.parentElement.getBoundingClientRect();
-    const targetRect = targetButton.getBoundingClientRect();
-    const offsetLeft = targetRect.left - parentRect.left + targetButton.parentElement.scrollLeft;
-    elements.glider.style.width = `${targetButton.offsetWidth}px`;
+    const offsetLeft = targetButton.offsetLeft;
+    const width = targetButton.offsetWidth;
+    elements.glider.style.width = `${width}px`;
     elements.glider.style.transform = `translateX(${offsetLeft}px)`;
 }
+
 async function atualizarDadosDoPeriodo(isInitialLoad = !1) {
     let reportSubtitle = "";
     let labelText = "";

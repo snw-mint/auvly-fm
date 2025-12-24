@@ -18,6 +18,13 @@ body {
     max-width: 100vw;
     overflow-x: hidden;
 }
+#btnIr, .btn-voltar, #btnGerarRelatorio {
+    display: inline-flex !important; 
+    align-items: center;       
+    justify-content: center;     
+    gap: 10px;                   
+    vertical-align: middle;
+}
 main {
     flex: 1;
     display: flex;

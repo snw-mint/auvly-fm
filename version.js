@@ -1,4 +1,5 @@
-const packageJsonUrl = "https://raw.githubusercontent.com/drey-we/tunecharts/main/package.json";
+const packageJsonUrl = `https://raw.githubusercontent.com/snw-mint/tunecharts/main/package.json?t=${new Date().getTime()}`;
+
 document.addEventListener("DOMContentLoaded", () => {
     fetch(packageJsonUrl)
         .then((response) => {
@@ -9,6 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const versionElements = document.querySelectorAll(".versao");
             versionElements.forEach((element) => {
                 element.textContent = `v${data.version}`;
+                
                 if (element.tagName === "A") {
                     const isSubPage = window.location.pathname.split("/").length > 2;
                     const prefix = isSubPage ? "../" : "";
