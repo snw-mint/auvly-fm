@@ -1,7 +1,8 @@
 const params = new URLSearchParams(window.location.search);
 const username = params.get("user");
 if (!username) window.location.href = "index.html";
-let currentPeriod = "1month";
+
+let currentPeriod = "1month"; // '7day' (Week) ou '1month' (Month)
 let selectedAccentColor = "#bb86fc";
 let selectedFormat = "story";
 let chartsToInclude = ["artists", "tracks"];
@@ -9,6 +10,7 @@ let elements = {};
 let globalTopArtistImage = "";
 let spotifyTokenCache = null;
 let cachedData = { artists: [], tracks: [] };
+
 async function carregarTudo() {
     elements = {
         btnInfo: document.getElementById("btnInfo"),
@@ -54,8 +56,9 @@ async function carregarTudo() {
     configurarEventosHub();
     configurarTogglePeriodo();
     await buscarPerfil();
-    atualizarDadosDoPeriodo(!0);
+    atualizarDadosDoPeriodo(true);
 }
+
 function configurarTogglePeriodo() {
     const buttons = document.querySelectorAll(".toggle-option");
     buttons.forEach((btn) => {
@@ -65,7 +68,7 @@ function configurarTogglePeriodo() {
             clickedButton.classList.add("active");
             currentPeriod = clickedButton.getAttribute("data-period");
             moveGlider(clickedButton);
-            atualizarDadosDoPeriodo(!1);
+            atualizarDadosDoPeriodo(false);
         });
     });
 }
@@ -78,38 +81,215 @@ function moveGlider(targetButton) {
     elements.glider.style.transform = `translateX(${offsetLeft}px)`;
 }
 
-async function atualizarDadosDoPeriodo(isInitialLoad = !1) {
+// --- LÓGICA DE DATAS (Igual ao Root) ---
+
+function getStartOfWeekTimestamp() {
+    const d = new Date();
+    const day = d.getDay(); 
+    // Ajusta para segunda-feira (Monday = 1). Se for Domingo (0), volta 6 dias.
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    d.setDate(diff);
+    d.setHours(0, 0, 0, 0);
+    return Math.floor(d.getTime() / 1000);
+}
+
+function getStartOfMonthTimestamp() {
+    const d = new Date();
+    d.setDate(1);
+    d.setHours(0, 0, 0, 0);
+    return Math.floor(d.getTime() / 1000);
+}
+
+function getMonthName(date) {
+    return date.toLocaleString('en-US', { month: 'long' });
+}
+
+// --- ENGINE PRINCIPAL (Counter) ---
+
+async function atualizarDadosDoPeriodo(isInitialLoad = false) {
+    resetarChartsParaSkeleton();
+    globalTopArtistImage = "";
+    atualizarBanner("");
+
     let reportSubtitle = "";
     let labelText = "";
     let scrobblesLabel = "";
+    let fromTimestamp = 0;
+
+    const now = new Date();
+
     if (currentPeriod === "7day") {
-        reportSubtitle = "Last 7 Days";
-        labelText = "Calculated from last 7 days";
+        fromTimestamp = getStartOfWeekTimestamp();
+        reportSubtitle = "My Week";
+        labelText = "Since Monday";
         scrobblesLabel = "Weekly Time";
     } else if (currentPeriod === "1month") {
-        reportSubtitle = "Last 30 Days";
-        labelText = "Calculated from last 30 days";
+        fromTimestamp = getStartOfMonthTimestamp();
+        const monthName = getMonthName(now);
+        reportSubtitle = `My ${monthName}`;
+        labelText = `In ${monthName}`;
         scrobblesLabel = "Monthly Time";
-    } else if (currentPeriod === "12month") {
-        reportSubtitle = "Last 365 Days";
-        labelText = "Calculated from last 12 months";
-        scrobblesLabel = "Annual Time";
     }
+
     if (elements.storySubtitle) elements.storySubtitle.textContent = reportSubtitle;
     if (elements.sqReportTitle) elements.sqReportTitle.textContent = reportSubtitle;
     if (elements.storyScrobblesLabel) elements.storyScrobblesLabel.textContent = scrobblesLabel;
     if (elements.sqScrobblesLabel) elements.sqScrobblesLabel.textContent = scrobblesLabel;
     if (elements.monthlyLabel) elements.monthlyLabel.textContent = labelText;
     if (elements.storyDisclaimer) elements.storyDisclaimer.textContent = labelText;
-    resetarChartsParaSkeleton();
-    globalTopArtistImage = "";
-    atualizarBanner("");
-    await calcularTempoOuvido();
+
+    // Chama a nova função de processamento de tempo
+    await processarDadosTempoCalendario(fromTimestamp);
+
     if (isInitialLoad) {
         const activeButton = document.querySelector(".toggle-option.active");
         if (activeButton) setTimeout(() => moveGlider(activeButton), 100);
     }
 }
+
+async function processarDadosTempoCalendario(fromTimestamp) {
+    try {
+        const tracks = await buscarHistoricoCompleto(fromTimestamp);
+        
+        let totalSeconds = 0;
+        const artistMap = {};
+        const trackMap = {};
+
+        tracks.forEach(t => {
+            // Nota: recenttracks nem sempre retorna duration. Se for 0, não soma tempo.
+            const duration = parseInt(t.duration || "0");
+            
+            if (duration > 0) {
+                const artistName = t.artist ? t.artist["#text"] : "Unknown";
+                const trackName = t.name;
+
+                totalSeconds += duration;
+
+                // Soma Artist
+                if (!artistMap[artistName]) artistMap[artistName] = 0;
+                artistMap[artistName] += duration;
+
+                // Soma Track (Key composta)
+                const trackKey = `${trackName}_||_${artistName}`;
+                if (!trackMap[trackKey]) trackMap[trackKey] = { seconds: 0, name: trackName, artist: artistName };
+                trackMap[trackKey].seconds += duration;
+            }
+        });
+
+        // Formata Total
+        const totalMinutes = Math.floor(totalSeconds / 60);
+        const formattedTotal = totalMinutes.toLocaleString("en-US") + " Minutes";
+        
+        // Calcula Média Diária
+        const daysPassed = Math.max(1, (Date.now()/1000 - fromTimestamp) / 86400);
+        const dailyAvg = Math.round(totalMinutes / daysPassed);
+        const formattedDaily = dailyAvg.toLocaleString("en-US") + " Mins/Day";
+
+        // Atualiza UI
+        if (elements.scrobblesPerDay) elements.scrobblesPerDay.textContent = formattedDaily;
+        if (elements.userScrobbles) elements.userScrobbles.textContent = formattedTotal;
+        if (elements.storyScrobblesValue) elements.storyScrobblesValue.textContent = formattedTotal;
+        if (elements.sqScrobblesValue) elements.sqScrobblesValue.textContent = formattedTotal;
+
+        // Ordena
+        const sortedArtists = Object.entries(artistMap)
+            .map(([name, seconds]) => ({ name: name, seconds: seconds }))
+            .sort((a, b) => b.seconds - a.seconds);
+
+        const sortedTracks = Object.values(trackMap)
+            .map(obj => ({ name: obj.name, artist: { name: obj.artist }, seconds: obj.seconds }))
+            .sort((a, b) => b.seconds - a.seconds);
+
+        cachedData.artists = sortedArtists;
+        cachedData.tracks = sortedTracks;
+
+        renderizarPreviewLista("cardArtists", sortedArtists, "artist");
+        renderizarPreviewLista("cardTracks", sortedTracks, "track");
+
+        // Imagem Top 1 Artista
+        if (sortedArtists.length > 0) {
+            const topArtistName = sortedArtists[0].name;
+            buscarImagemSpotify(topArtistName, "", "artist").then((url) => {
+                if (url) {
+                    globalTopArtistImage = url;
+                    atualizarBanner(url);
+                    const top1ImgEl = document.querySelector("#cardArtists .top-1 .cover-placeholder");
+                    if (top1ImgEl) {
+                         top1ImgEl.innerHTML = "";
+                         const img = new Image();
+                         img.src = url;
+                         img.onload = () => {
+                             top1ImgEl.appendChild(img); 
+                             img.classList.add('loaded');
+                         };
+                    }
+                }
+            });
+        }
+        // Imagem Top 1 Track
+        if (sortedTracks.length > 0) {
+            const topTrack = sortedTracks[0];
+            buscarImagemSpotify(topTrack.artist.name, topTrack.name, "track").then((url) => {
+                if (url) {
+                    const top1TrackEl = document.querySelector("#cardTracks .top-1 .cover-placeholder");
+                    if (top1TrackEl) {
+                        top1TrackEl.innerHTML = "";
+                        const img = new Image();
+                        img.src = url;
+                        img.onload = () => {
+                             top1TrackEl.appendChild(img);
+                             img.classList.add('loaded');
+                        };
+                    }
+                }
+            });
+        }
+
+    } catch (error) {
+        console.error("Erro calculando tempo:", error);
+        if (elements.userScrobbles) elements.userScrobbles.textContent = "Error";
+        document.querySelectorAll(".lista-top").forEach((el) => (el.innerHTML = "Error loading."));
+    } finally {
+        if (elements.userScrobbles) elements.userScrobbles.classList.remove("skeleton");
+        if (elements.scrobblesPerDay) elements.scrobblesPerDay.classList.remove("skeleton");
+    }
+}
+
+// Reutiliza a função de busca do Root (Paginação)
+async function buscarHistoricoCompleto(fromTimestamp) {
+    let allTracks = [];
+    let page = 1;
+    let totalPages = 1;
+    const limit = 200; 
+
+    try {
+        do {
+            const url = `/api/?method=user.getrecenttracks&user=${username}&limit=${limit}&page=${page}&from=${fromTimestamp}`;
+            const res = await fetch(url);
+            const data = await res.json();
+
+            if (!data.recenttracks || !data.recenttracks.track) break;
+
+            const tracks = Array.isArray(data.recenttracks.track) 
+                ? data.recenttracks.track 
+                : [data.recenttracks.track];
+            
+            // Filtra só o que tem data (ignora now playing se não tiver date)
+            allTracks = allTracks.concat(tracks.filter(t => t.date)); 
+
+            if (data.recenttracks["@attr"]) {
+                totalPages = parseInt(data.recenttracks["@attr"].totalPages);
+            }
+            
+            page++;
+        } while (page <= totalPages);
+
+    } catch (e) {
+        console.error("Erro fetch historico", e);
+    }
+    return allTracks;
+}
+
 function resetarChartsParaSkeleton() {
     const skeletonTop1 = `
         <div class="chart-item skeleton top-1">
@@ -123,6 +303,7 @@ function resetarChartsParaSkeleton() {
     if (elements.userScrobbles) elements.userScrobbles.innerHTML = "----";
     if (elements.scrobblesPerDay) elements.scrobblesPerDay.innerHTML = "--";
 }
+
 async function obterTokenSpotify() {
     if (spotifyTokenCache) return spotifyTokenCache;
     try {
@@ -137,6 +318,7 @@ async function obterTokenSpotify() {
     }
     return null;
 }
+
 async function buscarImagemSpotify(artist, trackName, type) {
     const token = await obterTokenSpotify();
     if (!token) return null;
@@ -165,6 +347,7 @@ async function buscarImagemSpotify(artist, trackName, type) {
     }
     return null;
 }
+
 async function buscarPerfil() {
     try {
         const url = `/api/?method=user.getinfo&user=${username}`;
@@ -190,90 +373,7 @@ async function buscarPerfil() {
         elements.userName.classList.remove("skeleton");
     }
 }
-async function calcularTempoOuvido() {
-    try {
-        let totalSeconds = 0;
-        let artistMap = {};
-        let trackList = [];
-        const limit = 1000;
-        const url = `/api/?method=user.gettoptracks&user=${username}&limit=${limit}&period=${currentPeriod}`;
-        const res = await fetch(url);
-        const data = await res.json();
-        let tracks = [];
-        if (data.toptracks && data.toptracks.track) {
-            tracks = Array.isArray(data.toptracks.track) ? data.toptracks.track : [data.toptracks.track];
-        }
-        tracks.forEach((track) => {
-            let duration = parseInt(track.duration);
-            const playcount = parseInt(track.playcount);
-            if (duration > 0) {
-                const trackTotalSeconds = duration * playcount;
-                totalSeconds += trackTotalSeconds;
-                trackList.push({
-                    name: track.name,
-                    artist: { name: track.artist.name },
-                    seconds: trackTotalSeconds,
-                    playcount: playcount,
-                });
-                if (artistMap[track.artist.name]) {
-                    artistMap[track.artist.name] += trackTotalSeconds;
-                } else {
-                    artistMap[track.artist.name] = trackTotalSeconds;
-                }
-            }
-        });
-        const totalMinutes = Math.floor(totalSeconds / 60);
-        const formattedTotal = totalMinutes.toLocaleString("en-US") + " Minutes";
-        let daysInPeriod = 30;
-        if (currentPeriod === "7day") daysInPeriod = 7;
-        if (currentPeriod === "12month") daysInPeriod = 365;
-        const dailyAverage = Math.round(totalMinutes / daysInPeriod);
-        const formattedDaily = dailyAverage.toLocaleString("en-US") + " Mins/Day";
-        if (elements.scrobblesPerDay) {
-            elements.scrobblesPerDay.textContent = formattedDaily;
-            elements.scrobblesPerDay.classList.remove("skeleton");
-        }
-        if (elements.userScrobbles) elements.userScrobbles.textContent = formattedTotal;
-        if (elements.storyScrobblesValue) elements.storyScrobblesValue.textContent = formattedTotal;
-        if (elements.sqScrobblesValue) elements.sqScrobblesValue.textContent = formattedTotal;
-        const sortedArtists = Object.keys(artistMap)
-            .map((artistName) => {
-                return { name: artistName, seconds: artistMap[artistName] };
-            })
-            .sort((a, b) => b.seconds - a.seconds);
-        const sortedTracks = trackList.sort((a, b) => b.seconds - a.seconds);
-        cachedData.artists = sortedArtists;
-        cachedData.tracks = sortedTracks;
-        renderizarPreviewLista("cardArtists", cachedData.artists, "artist");
-        renderizarPreviewLista("cardTracks", cachedData.tracks, "track");
-        if (sortedArtists.length > 0) {
-            const topArtistName = sortedArtists[0].name;
-            buscarImagemSpotify(topArtistName, "", "artist").then((url) => {
-                if (url) {
-                    globalTopArtistImage = url;
-                    atualizarBanner(url);
-                    const top1ImgEl = document.querySelector("#cardArtists .top-1 .cover-placeholder");
-                    if (top1ImgEl) top1ImgEl.style.backgroundImage = `url('${url}')`;
-                }
-            });
-        }
-        if (sortedTracks.length > 0) {
-            const topTrack = sortedTracks[0];
-            buscarImagemSpotify(topTrack.artist.name, topTrack.name, "track").then((url) => {
-                if (url) {
-                    const top1TrackEl = document.querySelector("#cardTracks .top-1 .cover-placeholder");
-                    if (top1TrackEl) top1TrackEl.style.backgroundImage = `url('${url}')`;
-                }
-            });
-        }
-    } catch (error) {
-        console.error("Erro calculando tempo:", error);
-        if (elements.userScrobbles) elements.userScrobbles.textContent = "Error";
-        document.querySelectorAll(".lista-top").forEach((el) => (el.innerHTML = "Error loading."));
-    } finally {
-        if (elements.userScrobbles) elements.userScrobbles.classList.remove("skeleton");
-    }
-}
+
 function renderizarPreviewLista(elementId, dataList, type) {
     const mainItems = dataList.slice(0, 10);
     const container = document.querySelector(`#${elementId} .lista-top`);
@@ -310,10 +410,12 @@ function renderizarPreviewLista(elementId, dataList, type) {
     });
     container.innerHTML = htmlMain || "No data.";
 }
+
 function formatTimeShort(totalSeconds) {
     const m = Math.floor(totalSeconds / 60);
     return `${m}m`;
 }
+
 function atualizarBanner(imgUrl) {
     if (!elements.bannerBackground) return;
     if (imgUrl && imgUrl.length > 0) {
@@ -332,6 +434,7 @@ function atualizarBanner(imgUrl) {
         }, 500);
     }
 }
+
 function configurarEventosHub() {
     if (!elements.genReportBtn) return;
     if (elements.btnInfo) {
@@ -395,6 +498,7 @@ function configurarEventosHub() {
         };
     });
 }
+
 async function gerarImagemFinal(format, accentColor, selectedCharts) {
     const btn = elements.genReportBtn;
     const originalText = btn.textContent;
@@ -478,6 +582,7 @@ async function gerarImagemFinal(format, accentColor, selectedCharts) {
         }, 2000);
     }
 }
+
 function formatarListaHTML(items, limit, type, format) {
     let html = "";
     const list = items || [];
@@ -507,6 +612,7 @@ function formatarListaHTML(items, limit, type, format) {
     });
     return html || "No data.";
 }
+
 function aplicarCoresDinamicas(card, accentColor, format) {
     if (format === "story") {
         card.querySelectorAll(".story-subtitle, .story-rank, .stat-label, .stat-disclaimer").forEach(
@@ -525,16 +631,9 @@ function aplicarCoresDinamicas(card, accentColor, format) {
         if (headerElement) {
             if (globalTopArtistImage) {
                 headerElement.style.background = `
-
                     radial-gradient(circle 700px at top right, ${accentColor}66, transparent),
-
-
                     linear-gradient(to bottom, transparent 30%, rgba(15,15,15,0.2) 50%, rgba(15,15,15,0.8) 80%, #0f0f0f 100%),
-                    
-
                     linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)),
-
-
                     url('${globalTopArtistImage}') no-repeat center center / cover
                 `;
             } else {

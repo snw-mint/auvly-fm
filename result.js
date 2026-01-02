@@ -6,7 +6,7 @@ const iconLoading = `<svg class="spinner" width="20" height="20" viewBox="0 0 24
 
 if (!username) window.location.href = "index.html";
 
-let currentPeriod = "1month";
+let currentPeriod = "1month"; // '7day' (Week) ou '1month' (Month)
 let selectedAccentColor = "#bb86fc";
 let selectedFormat = "story";
 let chartsToInclude = ["artists", "tracks"];
@@ -83,43 +83,245 @@ function moveGlider(targetButton) {
     elements.glider.style.transform = `translateX(${offsetLeft}px)`;
 }
 
+// --- LÓGICA DE DATAS ---
+
+function getStartOfWeekTimestamp() {
+    const d = new Date();
+    const day = d.getDay(); 
+    // Ajusta para segunda-feira (Monday = 1). Se for Domingo (0), volta 6 dias.
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    d.setDate(diff);
+    d.setHours(0, 0, 0, 0);
+    return Math.floor(d.getTime() / 1000);
+}
+
+function getStartOfMonthTimestamp() {
+    const d = new Date();
+    d.setDate(1);
+    d.setHours(0, 0, 0, 0);
+    return Math.floor(d.getTime() / 1000);
+}
+
+function getMonthName(date) {
+    return date.toLocaleString('en-US', { month: 'long' });
+}
+
+// --- ENGINE PRINCIPAL ---
+
 async function atualizarDadosDoPeriodo(isInitialLoad = false) {
+    resetarChartsParaSkeleton();
+    globalTopArtistImage = "";
+    atualizarBanner("");
+
+    // 1. Definição de Textos e Timestamps
     let reportSubtitle = "";
     let labelText = "";
     let scrobblesLabel = "";
+    let fromTimestamp = 0;
+
+    const now = new Date();
+
     if (currentPeriod === "7day") {
-        reportSubtitle = "Last 7 Days";
-        labelText = "In the last 7 days";
+        fromTimestamp = getStartOfWeekTimestamp();
+        reportSubtitle = "My Week"; // ou `Week of ${new Date(fromTimestamp*1000).getDate()}`
+        labelText = "Since Monday";
         scrobblesLabel = "Weekly Scrobbles";
     } else if (currentPeriod === "1month") {
-        reportSubtitle = `Last 30 Days`;
-        labelText = "In the last 30 days";
+        fromTimestamp = getStartOfMonthTimestamp();
+        const monthName = getMonthName(now);
+        reportSubtitle = `My ${monthName}`;
+        labelText = `In ${monthName}`;
         scrobblesLabel = "Monthly Scrobbles";
-    } else if (currentPeriod === "12month") {
-        reportSubtitle = `Last 12 Months`;
-        labelText = "In the last 12 months";
-        scrobblesLabel = "Annual Scrobbles";
     }
+
+    // Atualiza UI Textos
     elements.storySubtitle.textContent = reportSubtitle;
     elements.sqReportTitle.textContent = reportSubtitle;
     elements.storyScrobblesLabel.textContent = scrobblesLabel;
     elements.sqScrobblesLabel.textContent = scrobblesLabel;
     if (elements.monthlyLabel) elements.monthlyLabel.textContent = labelText;
     if (elements.storyDisclaimer) elements.storyDisclaimer.textContent = labelText;
-    
-    resetarChartsParaSkeleton();
-    globalTopArtistImage = "";
-    atualizarBanner("");
-    await Promise.all([
-        buscarScrobblesDoPeriodo(),
-        buscarCharts("user.gettopartists", "artist", "cardArtists"),
-        buscarCharts("user.gettoptracks", "track", "cardTracks"),
-        buscarCharts("user.gettopalbums", "album", "cardAlbums"),
-    ]);
+
+    // 2. Busca e Processamento
+    await processarDadosCalendario(fromTimestamp);
+
     if (isInitialLoad) {
         const activeButton = document.querySelector(".toggle-option.active");
         if (activeButton) setTimeout(() => moveGlider(activeButton), 100);
     }
+}
+
+async function processarDadosCalendario(fromTimestamp) {
+    try {
+        // Busca tracks
+        const tracks = await buscarHistoricoCompleto(fromTimestamp);
+        
+        // Atualiza Contador Total
+        const totalScrobbles = tracks.length;
+        elements.userScrobbles.textContent = totalScrobbles.toLocaleString("pt-BR");
+        if (elements.storyScrobblesValue) elements.storyScrobblesValue.textContent = totalScrobbles.toLocaleString("en-US");
+        if (elements.sqScrobblesValue) elements.sqScrobblesValue.textContent = totalScrobbles.toLocaleString("en-US");
+        
+        // Calcula Média Diária (Simples: Total / Dias passados desde o inicio do periodo)
+        const daysPassed = Math.max(1, (Date.now()/1000 - fromTimestamp) / 86400);
+        const dailyAvg = Math.round(totalScrobbles / daysPassed);
+        if (elements.scrobblesPerDay) elements.scrobblesPerDay.textContent = dailyAvg.toLocaleString("pt-BR");
+
+        // Agregação dos dados
+        const artistMap = {};
+        const trackMap = {};
+        const albumMap = {};
+
+        tracks.forEach(t => {
+            const artistName = t.artist ? t.artist["#text"] : "Unknown";
+            const trackName = t.name;
+            const albumName = t.album ? t.album["#text"] : "";
+
+            // Count Artist
+            if (!artistMap[artistName]) artistMap[artistName] = 0;
+            artistMap[artistName]++;
+
+            // Count Track (Key composta para evitar conflitos de nomes iguais)
+            const trackKey = `${trackName}_||_${artistName}`;
+            if (!trackMap[trackKey]) trackMap[trackKey] = { count: 0, name: trackName, artist: artistName };
+            trackMap[trackKey].count++;
+
+            // Count Album
+            if (albumName) {
+                const albumKey = `${albumName}_||_${artistName}`;
+                if (!albumMap[albumKey]) albumMap[albumKey] = { count: 0, name: albumName, artist: artistName };
+                albumMap[albumKey].count++;
+            }
+        });
+
+        // Converte para Arrays e Ordena
+        const sortedArtists = Object.entries(artistMap)
+            .map(([name, count]) => ({ name: name, playcount: count }))
+            .sort((a, b) => b.playcount - a.playcount);
+
+        const sortedTracks = Object.values(trackMap)
+            .map(obj => ({ name: obj.name, artist: { name: obj.artist }, playcount: obj.count }))
+            .sort((a, b) => b.playcount - a.playcount);
+            
+        const sortedAlbums = Object.values(albumMap)
+            .map(obj => ({ name: obj.name, artist: { name: obj.artist }, playcount: obj.count }))
+            .sort((a, b) => b.playcount - a.playcount);
+
+        // Salva em cache
+        cachedData.artists = sortedArtists;
+        cachedData.tracks = sortedTracks;
+        cachedData.albums = sortedAlbums;
+
+        // Renderiza
+        renderizarListaProcessada("cardArtists", sortedArtists, "artist");
+        renderizarListaProcessada("cardTracks", sortedTracks, "track");
+        renderizarListaProcessada("cardAlbums", sortedAlbums, "album");
+
+    } catch (error) {
+        console.error("Erro processando calendario:", error);
+        elements.userScrobbles.textContent = "-";
+        document.querySelectorAll(".lista-top").forEach(el => el.innerHTML = "Error loading.");
+    } finally {
+        elements.userScrobbles.classList.remove("skeleton");
+        if (elements.scrobblesPerDay) elements.scrobblesPerDay.classList.remove("skeleton");
+    }
+}
+
+async function buscarHistoricoCompleto(fromTimestamp) {
+    let allTracks = [];
+    let page = 1;
+    let totalPages = 1;
+    const limit = 200; // Limite alto para reduzir requisições
+
+    try {
+        do {
+            const url = `/api/?method=user.getrecenttracks&user=${username}&limit=${limit}&page=${page}&from=${fromTimestamp}`;
+            const res = await fetch(url);
+            const data = await res.json();
+
+            if (!data.recenttracks || !data.recenttracks.track) break;
+
+            const tracks = Array.isArray(data.recenttracks.track) 
+                ? data.recenttracks.track 
+                : [data.recenttracks.track];
+
+            // Filtra "Now Playing" se necessário (embora 'from' deva cuidar da maioria, now playing vem sem date ou date=UTS futuro)
+            // Vamos incluir tudo que voltou, exceto o now playing atual se não tiver data, para não bugar contagem se quiser
+            // Mas geralmente conta-se now playing como scrobble do dia.
+            
+            allTracks = allTracks.concat(tracks.filter(t => t.date)); // Pega só o que já foi scrobblado (tem data)
+
+            if (data.recenttracks["@attr"]) {
+                totalPages = parseInt(data.recenttracks["@attr"].totalPages);
+            }
+            
+            page++;
+        } while (page <= totalPages);
+
+    } catch (e) {
+        console.error("Erro fetch historico", e);
+    }
+    return allTracks;
+}
+
+function renderizarListaProcessada(elementId, items, type) {
+    const container = document.querySelector(`#${elementId} .lista-top`);
+    if (!container) return;
+
+    let htmlMain = "";
+    // Top 10
+    const topItems = items.slice(0, 10);
+
+    topItems.forEach((item, i) => {
+        const isTop1 = i === 0;
+        let text = item.name;
+        let artistName = item.artist ? item.artist.name : ""; // Tracks/Albums têm obj artist, Artists não (name é o artist)
+        
+        // Se o tipo for artist, item.name é o artista. Se for track/album, item.artist.name é o artista.
+        const artistForSearch = type === "artist" ? item.name : artistName;
+        const trackForSearch = type === "artist" ? "" : item.name;
+
+        const imgId = `img-${type}-${i}`;
+
+        if (isTop1) {
+            let subtitle = type !== "artist" ? `<span style="display:block; font-size: 0.85em; opacity: 0.7; font-weight: normal;">${artistName}</span>` : "";
+            // Adiciona contagem de scrobbles
+            let countLabel = `<span style="display:block; font-size: 0.75em; opacity: 0.6; margin-top: 4px;">${item.playcount} plays</span>`;
+
+            htmlMain += `<div class="chart-item top-1"><div id="${imgId}" class="cover-placeholder"></div><div class="text-content"><span class="rank-number">#1</span><div><span>${text}</span>${subtitle}${countLabel}</div></div></div>`;
+            
+            // Busca imagem do Top 1
+            buscarImagemSpotify(artistForSearch, trackForSearch, type).then(
+                (spotifyUrl) => {
+                    if (spotifyUrl) {
+                        const el = document.getElementById(imgId);
+                        if (el) {
+                            const img = new Image();
+                            img.src = spotifyUrl;
+                            img.onload = () => {
+                                el.innerHTML = "";
+                                el.appendChild(img);
+                                void el.offsetWidth; 
+                                img.classList.add('loaded');
+                            };
+                        }
+                        if (type === "artist") {
+                            atualizarBanner(spotifyUrl);
+                            globalTopArtistImage = spotifyUrl;
+                        }
+                    }
+                }
+            );
+        } else {
+            let extra = type !== "artist" ? ` <span style="opacity:0.6"> - ${artistName}</span>` : "";
+            htmlMain += `<div class="chart-item">
+                            <div style="flex:1;">#${i + 1} - ${text}${extra}</div>
+                            <div style="font-size:0.8em; opacity:0.5;">${item.playcount}</div>
+                         </div>`;
+        }
+    });
+
+    container.innerHTML = htmlMain || "No data for this period.";
 }
 
 function resetarChartsParaSkeleton() {
@@ -128,6 +330,9 @@ function resetarChartsParaSkeleton() {
     document.querySelectorAll(".lista-top").forEach((el) => {
         el.innerHTML = skeletonTop1 + skeletonItem.repeat(9);
     });
+    // Resetar contadores visuais
+    if (elements.userScrobbles) elements.userScrobbles.textContent = "----";
+    if (elements.scrobblesPerDay) elements.scrobblesPerDay.textContent = "--";
 }
 
 async function buscarPerfil() {
@@ -153,94 +358,6 @@ async function buscarPerfil() {
     } catch (error) {
         elements.userName.textContent = username;
         elements.userName.classList.remove("skeleton");
-    }
-}
-
-async function buscarScrobblesDoPeriodo() {
-    try {
-        let fromDate = 0;
-        let daysDivisor = 1;
-        if (currentPeriod === "7day") {
-            fromDate = Math.floor((Date.now() - 7 * 24 * 60 * 60 * 1000) / 1000);
-            daysDivisor = 7;
-        } else if (currentPeriod === "1month") {
-            fromDate = Math.floor((Date.now() - 30 * 24 * 60 * 60 * 1000) / 1000);
-            daysDivisor = 30;
-        } else if (currentPeriod === "12month") {
-            fromDate = Math.floor((Date.now() - 365 * 24 * 60 * 60 * 1000) / 1000);
-            daysDivisor = 365;
-        }
-        const url = `/api/?method=user.getrecenttracks&user=${username}&limit=1&from=${fromDate}`;
-        const res = await fetch(url);
-        const data = await res.json();
-        let total = "0";
-        if (data.recenttracks && data.recenttracks["@attr"]) total = data.recenttracks["@attr"].total;
-        const totalInt = parseInt(total);
-        elements.userScrobbles.textContent = totalInt.toLocaleString("pt-BR");
-        if (elements.storyScrobblesValue) elements.storyScrobblesValue.textContent = totalInt.toLocaleString("en-US");
-        if (elements.sqScrobblesValue) elements.sqScrobblesValue.textContent = totalInt.toLocaleString("en-US");
-        const dailyAvg = daysDivisor > 0 ? Math.round(totalInt / daysDivisor) : 0;
-        if (elements.scrobblesPerDay) elements.scrobblesPerDay.textContent = dailyAvg.toLocaleString("pt-BR");
-    } catch (error) {
-        elements.userScrobbles.textContent = "-";
-    } finally {
-        elements.userScrobbles.classList.remove("skeleton");
-        if (elements.scrobblesPerDay) elements.scrobblesPerDay.classList.remove("skeleton");
-    }
-}
-
-async function buscarCharts(method, type, mainId) {
-    try {
-        const url = `/api/?method=${method}&user=${username}&limit=10&period=${currentPeriod}`;
-        const res = await fetch(url);
-        const data = await res.json();
-        const rootKey = "top" + type + "s";
-        const items = data[rootKey] ? (Array.isArray(data[rootKey][type]) ? data[rootKey][type] : [data[rootKey][type]]) : [];
-        
-        cachedData[type + "s"] = items; 
-        
-        const container = document.querySelector(`#${mainId} .lista-top`);
-        if (!container) return;
-        let htmlMain = "";
-        for (let i = 0; i < Math.min(items.length, 10); i++) {
-            const item = items[i];
-            const isTop1 = i === 0;
-            let text = item.name;
-            let artistName = item.artist ? item.artist.name : "";
-            const imgId = `img-${type}-${i}`;
-            if (isTop1) {
-                let subtitle = type !== "artist" ? `<span style="display:block; font-size: 0.85em; opacity: 0.7; font-weight: normal;">${artistName}</span>` : "";
-                htmlMain += `<div class="chart-item top-1"><div id="${imgId}" class="cover-placeholder"></div><div class="text-content"><span class="rank-number">#1</span><div><span>${text}</span>${subtitle}</div></div></div>`;
-                
-                buscarImagemSpotify(type === "artist" ? text : artistName, type === "artist" ? "" : text, type).then(
-                    (spotifyUrl) => {
-                        if (spotifyUrl) {
-                            const el = document.getElementById(imgId);
-                            if (el) {
-                                const img = new Image();
-                                img.src = spotifyUrl;
-                                img.onload = () => {
-                                    el.innerHTML = "";
-                                    el.appendChild(img);
-                                    void el.offsetWidth; 
-                                    img.classList.add('loaded');
-                                };
-                            }
-                            if (type === "artist") {
-                                atualizarBanner(spotifyUrl);
-                                globalTopArtistImage = spotifyUrl;
-                            }
-                        }
-                    }
-                );
-            } else {
-                if (type !== "artist") text += ` <span style="opacity:0.6"> - ${artistName}</span>`;
-                htmlMain += `<div class="chart-item">#${i + 1} - ${text}</div>`;
-            }
-        }
-        container.innerHTML = htmlMain || "No data.";
-    } catch (error) {
-        document.querySelector(`#${mainId} .lista-top`).innerHTML = "Error loading.";
     }
 }
 
