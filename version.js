@@ -17,3 +17,23 @@ document.addEventListener("DOMContentLoaded", () => {
             console.error("Version Error:", error);
         });
 });
+
+document.addEventListener("DOMContentLoaded", () => {
+    const scrollBtn = document.getElementById("scrollTopBtn");
+    if (scrollBtn) {
+        window.addEventListener(
+            "scroll",
+            () => {
+                if (window.scrollY > 300) {
+                    scrollBtn.classList.add("visible");
+                } else {
+                    scrollBtn.classList.remove("visible");
+                }
+            },
+            { passive: !0 }
+        );
+        scrollBtn.addEventListener("click", () => {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+    }
+});

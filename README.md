@@ -1,4 +1,13 @@
-# 🎵 TuneCharts
+<p align="Center">
+  <img src="android-chrome-512x512.png" width="100" title="Charts">
+</p>
+
+# 🎵 Tune Charts Suite
+
+[![Stars](https://img.shields.io/github/stars/snw-mint/tunecharts?style=flat)](https://github.com/snw-mint/tunecharts/stargazers)
+[![Forks](https://img.shields.io/github/forks/snw-mint/tunecharts?style=flat)](https://github.com/snw-mint/tunecharts/network/members)
+[![Issues](https://img.shields.io/github/issues/snw-mint/tunecharts?style=flat)](https://github.com/snw-mint/tunecharts/issues)
+[![Last Commit](https://img.shields.io/github/last-commit/snw-mint/tunecharts?style=flat)](https://github.com/snw-mint/tunecharts/commits/main)
 
 A suite of visual tools for music lovers, integrated with Last.fm and Spotify APIs. This project generates aesthetic reports ("receipts"), listening statistics, and music compatibility analysis, optimized for social sharing (Instagram Stories).
 
@@ -31,7 +40,7 @@ tunecharts/
 ```
 
 ## 🛠️ Tools & Features
-### 1. TuneCharts (Main)
+### <img src="android-chrome-512x512.png" width="30" align="center"> 1. TuneCharts (Main)
 
 Generates visual cards summarizing top albums, artists, and tracks over customizable periods.
 
@@ -39,7 +48,7 @@ Generates visual cards summarizing top albums, artists, and tracks over customiz
 
 - Tech: Canvas generation for instant download.
 
-### 2. Counter (/counter)
+### <img src="/counter/android-chrome-512x512.png" width="30" align="center"> 2. Counter (/counter)
 
 Calculates the total time (hours/minutes) a user has spent listening to music.
 
@@ -49,25 +58,17 @@ Calculates the total time (hours/minutes) a user has spent listening to music.
 
 - UI: Includes an informational modal explaining this calculation logic to the user.
 
-### 3. Matcher (/matcher)
+### <img src="/matcher/android-chrome-512x512.png" width="30" align="center"> 3. Matcher (/matcher)
 
 A compatibility tool that cross-references listening history between two users to generate a "Match Score" based on shared artists and genres.
 
-### 4. Live (/live)
+### <img src="/live/android-chrome-512x512.png" width="30" align="center"> 4. Live (/live)
 
 A real-time "Always-On Display" visualizer that transforms your monitor into a dynamic music frame.
 
-- Functionality: Continuously monitors your Last.fm "Now Playing" status. When a song starts, it fetches high-resolution album art or artist imagery from Spotify to create a beautiful, immersive backdrop.
+- Functionality: Continuously monitors your Last.fm "Now Playing" status. When a song starts, it fetches high-resolution album art or artist imagery from Spotify to create a beautiful, immersive backdrop. Desktop & Tablet Only.
 
-- Platform Limitation: Desktop & Tablet Only.
-
-- Reasoning: This tool is designed to function as a digital photo frame or a "Zen Mode" companion for your second monitor while you work or relax. To preserve this specific immersive aesthetic, the interface is restricted on mobile devices (smartphones).
-
-- Features: Real-time polling (updates automatically without refresh).
-
-- Customization Menu: Toggle artist/track names, choose background modes (Artist Image, Album Art, or Solid Color), and adjust layout positions.
-
-- Idle Mode: Automatically detects when music stops.
+- Features: Real-time polling (updates automatically without refresh). Toggle artist/track names, choose background modes (Artist Image, Album Art, or Solid Color), and adjust layout positions. Automatically detects when music stops.
 
 ## ⚠️ Security & API Usage
 

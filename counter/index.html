@@ -128,6 +128,13 @@
                     Don't have a Last.fm account? <a href="https://www.last.fm/join" target="_blank" rel="noopener noreferrer">Create one!</a>
                 </p>
                 <p id="mensagemErro" class="erro"></p>
+                                <div class="github-ribbon-container">
+                        <a href="https://github.com/snw-mint/tunecharts" target="_blank" class="github-ribbon" title="Source Code">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                            </svg>
+                        </a>
+                    </div>
             </div>
         </main>
         <div class="content-wrapper">
@@ -171,63 +178,33 @@
             </section>
         </div>
         <footer>
-            <div id="feedbackModal" class="feedback-overlay">
-                <div class="feedback-box">
-                    <span class="feedback-close" onclick="closeFeedback()">&times;</span>
-                    <div id="formContainer">
-                        <h2 style="margin-bottom: 10px; color: #fff; text-align: center">Send Feedback</h2>
-                        <p style="color: #aaa; font-size: 0.9em; margin-bottom: 25px; text-align: center; line-height: 1.5">
-                            Found a bug? Have a suggestion? Let us know!<br />Your feedback helps us improve.
-                        </p>
-                        <form id="feedbackForm" action="https://formspree.io/f/mkgdqwww" method="POST" style="display: flex; flex-direction: column; gap: 15px">
-                            <input type="hidden" name="tool_source" value="Counter" />
-                            <div class="rating-wrapper" style="text-align: center; margin-bottom: 5px">
-                                <span style="display: block; font-size: 0.9em; color: #ccc; margin-bottom: 8px">How satisfied are you?</span>
-                                <div class="star-rating" style="display: inline-block; direction: rtl; border: none">
-                                    <input type="radio" id="star5" name="rating" value="5" hidden /><label for="star5" title="Excellent">★</label>
-                                    <input type="radio" id="star4" name="rating" value="4" hidden /><label for="star4" title="Great">★</label>
-                                    <input type="radio" id="star3" name="rating" value="3" hidden /><label for="star3" title="Good">★</label>
-                                    <input type="radio" id="star2" name="rating" value="2" hidden /><label for="star2" title="Poor">★</label>
-                                    <input type="radio" id="star1" name="rating" value="1" hidden /><label for="star1" title="Very Poor">★</label>
-                                </div>
-                            </div>
-                            <textarea name="message" placeholder="Type your message here..." required style="width: 100%; height: 120px; padding: 15px; border-radius: 12px; border: 1px solid #333; background: rgba(255, 255, 255, 0.05); color: #fff; font-family: 'Poppins', sans-serif; font-size: 0.95rem; resize: none; outline: none;"></textarea>
-                            <input type="text" name="contact" placeholder="Last.fm user or Email (Optional)" style="width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #333; background: rgba(255, 255, 255, 0.05); color: #fff; font-family: 'Poppins', sans-serif; font-size: 0.95rem; outline: none;" />
-                            <button type="submit" id="btnSendFeedback" style="background-color: #bb86fc; color: #000; font-weight: 700; border: none; padding: 15px; border-radius: 50px; cursor: pointer; transition: all 0.2s; font-size: 1rem; margin-top: 10px;">
-                                Send Feedback
-                            </button>
-                        </form>
-                    </div>
-                    <div id="successContainer" style="display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 30px 0">
-                        <div style="width: 80px; height: 80px; border-radius: 50%; background: rgba(187, 134, 252, 0.1); color: #bb86fc; display: flex; align-items: center; justify-content: center; margin-bottom: 20px">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="width: 40px; height: 40px; stroke-width: 3">
-                                <polyline points="20 6 9 17 4 12"></polyline>
-                            </svg>
-                        </div>
-                        <h3 style="margin-bottom: 10px; font-size: 1.5rem; color: #fff">Thank You!</h3>
-                        <p style="color: #aaa">Your feedback has been sent successfully.</p>
-                    </div>
-                </div>
-            </div>
             <div class="footer-info">
                 <span class="info-line-1">© <span id="currentYear"></span> TuneCharts.</span>
                 <span class="info-line-2">All rights reserved.</span><span class="separator">|</span>
                 <span class="info-line-3">Created with 💜 by <a href="https://github.com/snw-mint/" target="_blank">Snow Mint</a></span>
             </div>
             <div class="footer-links">
-                <a href="privacy.html">Privacy Policy</a><span class="dot">•</span><a href="terms.html">Terms of Use</a>
-                <span class="dot">•</span><a href="#" onclick="openFeedback(event)">Send Feedback</a>
+                <a href="privacy.html">Privacy Policy</a>
+                <span class="dot">•</span>
+                <a href="terms.html">Terms of Use</a>
+                <span class="dot">•</span>
+                <a href="https://github.com/snw-mint/tunecharts/issues" target="_blank">Feedback / Issues</a>
                 <span class="dot">•</span>
                 <a href="https://github.com/snw-mint/tunecharts" target="_blank" aria-label="View Source on GitHub" title="View Source on GitHub" style="display: inline-flex; align-items: center">
                     <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="transition: stroke 0.2s">
                         <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
                     </svg>
                 </a>
-                <span class="dot">•</span><a href="https://github.com/snw-mint/tunecharts/releases" target="_blank" class="versao">v0.0.0</a>
+                <span class="dot">•</span>
+                <a href="https://github.com/snw-mint/tunecharts/releases" target="_blank" class="versao">v0.0.0</a>
             </div>
         </footer>
+            <button id="scrollTopBtn" aria-label="Top">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 6v12m0-12-5 5m5-5 5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
         <script src="script.js"></script>
-        <script src="feedback.js"></script>
         <script src="version.js"></script>
     </body>
 </html>

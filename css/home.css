@@ -130,7 +130,6 @@
 }
 .card-inicial {
     background-color: rgb(24 24 24 / 0.85);
-    padding: 40px 40px 20px;
     border-radius: 24px;
     border: 1px solid rgb(255 255 255 / 0.1);
     backdrop-filter: blur(10px);
@@ -138,6 +137,44 @@
     max-width: 400px;
     width: 100%;
     box-shadow: 0 20px 40px rgb(0 0 0 / 0.4);
+    position: relative !important;
+    overflow: hidden !important;
+    padding: 40px 40px 20px !important;
+}
+.github-ribbon-container {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 50px;
+    height: 50px;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 10;
+}
+.github-ribbon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 150px;
+    height: 40px;
+    background-color: #bb86fc;
+    color: #000 !important;
+    transform: translate(-50%, -50%) rotate(-45deg) translateY(20px);
+    box-shadow: 0 0 5px rgb(0 0 0 / 0.3);
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s;
+    padding-bottom: 15px;
+}
+.github-ribbon:hover {
+    background-color: #fff;
+}
+.github-ribbon svg {
+    width: 16px;
+    height: 16px;
+    transform: rotate(0deg);
 }
 .card-inicial h1 {
     margin-bottom: 10px;
@@ -223,42 +260,6 @@ button:hover {
     color: #e0baff;
     text-decoration: underline;
 }
-.counter-promo {
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-    margin-top: 25px;
-    padding: 12px 25px;
-    background: rgb(255 255 255 / 0.03);
-    border: 1px solid rgb(187 134 252 / 0.2);
-    border-radius: 50px;
-    text-decoration: none;
-    color: #ccc;
-    font-size: 0.95em;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(5px);
-}
-.counter-promo:hover {
-    background: rgb(187 134 252 / 0.1);
-    border-color: #bb86fc;
-    color: #fff;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 20px rgb(187 134 252 / 0.15);
-}
-.promo-badge {
-    background: #bb86fc;
-    color: #000;
-    font-weight: 800;
-    font-size: 0.75em;
-    padding: 4px 8px;
-    border-radius: 6px;
-}
-.promo-arrow {
-    transition: transform 0.3s ease;
-}
-.counter-promo:hover .promo-arrow {
-    transform: translateX(4px);
-}
 .content-wrapper {
     width: 100%;
     padding: 40px 0;
@@ -294,7 +295,7 @@ button:hover {
 }
 .content-text h2 {
     font-size: 2.5rem;
-    font-weight: 900;
+    font-weight: 700;
     color: #f0f0f0;
     margin-bottom: 20px;
 }
