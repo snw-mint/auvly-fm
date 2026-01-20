@@ -60,41 +60,52 @@ async function fetchLastFm(method, user, period = "", limit = "") {
 function calculateCompatibility(list1, list2) {
     const arr1 = Array.isArray(list1) ? list1 : [list1];
     const arr2 = Array.isArray(list2) ? list2 : [list2];
-
     let commonArtists = [];
+    let totalScore = 0;
     const map2 = new Map();
-    arr2.forEach((artist, index) => map2.set(artist.name.toLowerCase(), index));
-
+    arr2.forEach((artist, index) => {
+        map2.set(artist.name.toLowerCase(), { rank: index + 1, points: getTierPoints(index + 1) });
+    });
     arr1.forEach((artist, index1) => {
         const name = artist.name.toLowerCase();
         if (map2.has(name)) {
-            const index2 = map2.get(name);
-            const weight1 = Math.max(0, 50 - index1);
-            const weight2 = Math.max(0, 50 - index2);
-            const matchQuality = (weight1 + weight2) / 2; 
-            
+            const data2 = map2.get(name);
+            const rank1 = index1 + 1;
+            const rank2 = data2.rank;
+            const points1 = getTierPoints(rank1);
+            const points2 = data2.points;
+            let matchQuality = points1 + points2;
+            if (rank1 === 1 || rank2 === 1) {
+                matchQuality += 50;
+            }
+            totalScore += matchQuality;
             commonArtists.push({
                 name: artist.name,
-                rank1: index1 + 1,
-                rank2: index2 + 1,
-                quality: matchQuality
+                rank1: rank1,
+                rank2: rank2,
+                quality: Math.min(100, (matchQuality / 250) * 100),
             });
         }
     });
-
     commonArtists.sort((a, b) => b.quality - a.quality);
-
-    const baseScore = (commonArtists.length / 50) * 100; 
-    const qualityScore = commonArtists.reduce((acc, curr) => acc + curr.quality, 0) / 10; 
-    let finalScore = Math.min(100, Math.round(baseScore * 0.4 + qualityScore * 0.6));
-    
-    if (commonArtists.length > 0 && commonArtists[0].rank1 === 1 && commonArtists[0].rank2 === 1) {
-        finalScore = Math.min(100, finalScore + 10);
+    const targetScore = 1500;
+    let finalPercent = 0;
+    if (totalScore > 0) {
+        const linear = (totalScore / targetScore) * 100;
+        const curve = Math.pow(totalScore / targetScore, 0.7) * 100;
+        finalPercent = linear * 0.4 + curve * 0.6;
     }
-    if (commonArtists.length === 0) finalScore = Math.max(0, finalScore - 10);
-
-    return { score: finalScore, commonArtists };
+    finalPercent = Math.min(100, Math.round(finalPercent));
+    if (commonArtists.length > 0 && finalPercent < 5) finalPercent = 5;
+    return { score: finalPercent, commonArtists };
 }
+function getTierPoints(rank) {
+    if (rank <= 5) return 100;
+    if (rank <= 15) return 70;
+    if (rank <= 30) return 40;
+    return 20;
+}
+
 
 function renderProfiles(p1, p2) {
     const u1 = p1.user;
