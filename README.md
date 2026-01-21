@@ -4,10 +4,10 @@
 
 # 🎵 AuvlyFM Suite
 
-[![Stars](https://img.shields.io/github/stars/snw-mint/auvly-fm?style=flat)](https://github.com/snw-mint/auvly-fm/stargazers)
-[![Forks](https://img.shields.io/github/forks/snw-mint/auvly-fm?style=flat)](https://github.com/snw-mint/auvly-fm/network/members)
-[![Issues](https://img.shields.io/github/issues/snw-mint/auvly-fm?style=flat)](https://github.com/snw-mint/auvly-fm/issues)
-[![Last Commit](https://img.shields.io/github/last-commit/snw-mint/auvly-fm?style=flat)](https://github.com/snw-mint/auvly-fm/commits/main)
+[![Stars](https://img.shields.io/github/stars/snw-mint/auvly-fm?style=flat)](https://github.com/AuvlyFM/auvlyfm.github.io//stargazers)
+[![Forks](https://img.shields.io/github/forks/snw-mint/auvly-fm?style=flat)](https://github.com/AuvlyFM/auvlyfm.github.io//network/members)
+[![Issues](https://img.shields.io/github/issues/snw-mint/auvly-fm?style=flat)](https://github.com/AuvlyFM/auvlyfm.github.io/issues)
+[![Last Commit](https://img.shields.io/github/last-commit/snw-mint/auvly-fm?style=flat)](https://github.com/AuvlyFM/auvlyfm.github.io//commits/main)
 
 A suite of visual tools for music lovers, integrated with Last.fm and Spotify APIs. This project generates aesthetic reports ("receipts"), listening statistics, and music compatibility analysis, optimized for social sharing (Instagram Stories).
 

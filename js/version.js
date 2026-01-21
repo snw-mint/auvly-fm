@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
     versionElements.forEach(element => {
         element.textContent = APP_VERSION;
         if (element.tagName === "A" && !element.getAttribute('href')) {
-             element.href = "https://github.com/snw-mint/auvly-fm/releases";
+             element.href = "https://github.com/AuvlyFM/auvlyfm.github.io//releases";
         }
     });
 
