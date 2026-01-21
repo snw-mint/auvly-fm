@@ -424,7 +424,7 @@ async function buscarImagemSpotify(artist, albumOrTrackName, type) {
         searchType = "track";
     }
     try {
-        const url = `https://api.spotify.com/v1/search?q=${query}&type=${searchType}&limit=1`;
+        const url = `https://api.spotify.com/v1/search?${query}&type=${searchType}&limit=1`;
         const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
         const data = await res.json();
         if (type === "artist" && data.artists?.items?.length > 0) {

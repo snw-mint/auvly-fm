@@ -457,42 +457,54 @@ async function obterTokenSpotify() {
     return null;
 }
 
-async function buscarImagemSpotify(artist, trackName, type) { // O parâmetro correto é trackName
+async function buscarImagemSpotify(artist, albumOrTrackName, type) {
     const token = await obterTokenSpotify();
     if (!token) return null;
-    
-    const cleanArtist = encodeURIComponent(artist);
-    // CORREÇÃO 1: Usar 'trackName' em vez de 'name'
-    const cleanName = trackName ? encodeURIComponent(trackName.split(" - ")[0].split("(")[0]) : "";
-    
-    let query = "";
+
+    const cleanArtist = artist.replace(/"/g, ''); 
+    const cleanTrack = albumOrTrackName ? albumOrTrackName.split(" - ")[0].split("(")[0].trim() : "";
+
+    let searchQuery = "";
     let searchType = "";
 
     if (type === "artist") {
-        query = `q=artist:"${cleanArtist}"`;
+        searchQuery = `artist:${cleanArtist}`;
         searchType = "artist";
-    } else if (type === "album") { 
-        query = `q=album:"${cleanName}" artist:"${cleanArtist}"`;
+    } else if (type === "album") {
+        searchQuery = `album:${cleanTrack} artist:${cleanArtist}`;
         searchType = "album";
     } else {
-        query = `q=track:"${cleanName}" artist:"${cleanArtist}"`;
+        searchQuery = `track:${cleanTrack} artist:${cleanArtist}`;
         searchType = "track";
     }
 
     try {
-        const url = `https://api.spotify.com/v1/search?q=${query}&type=${searchType}&limit=1`;
-        const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+        const qEncoded = encodeURIComponent(searchQuery);
+        const url = `https://api.spotify.com/v1/search?q=${qEncoded}&type=${searchType}&limit=1`;
+        const res = await fetch(url, {
+            headers: { 
+                "Authorization": `Bearer ${token}` 
+            }
+        });
+
+        if (!res.ok) {
+            console.warn(`Erro Spotify [${res.status}]:`, await res.text());
+            return null;
+        }
+
         const data = await res.json();
 
         if (type === "artist" && data.artists?.items?.length > 0) {
             return data.artists.items[0].images[0]?.url;
-        } else if (type === "album" && data.albums?.items?.length > 0) { 
-            // CORREÇÃO 2: Removi a barra '/' que estava aqui causando erro
+        } else if (type === "album" && data.albums?.items?.length > 0) {
             return data.albums.items[0].images[0]?.url;
         } else if (type === "track" && data.tracks?.items?.length > 0) {
             return data.tracks.items[0].album.images[0]?.url;
         }
-    } catch (e) { return null; }
+    } catch (e) {
+        console.error("Erro no fetch do Spotify:", e);
+        return null;
+    }
     return null;
 }
 
