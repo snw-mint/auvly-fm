@@ -2,7 +2,7 @@ const isLocal = window.location.hostname === "localhost" || window.location.host
 
 const CONFIG = {
     APP_NAME: "Auvly",
-    BASE_URL: isLocal ? "" : "https://snw-mint.github.io/auvly-fm",
+    BASE_URL: isLocal ? "" : "https://auvly-fm.github.io",
     WORKER_API: "https://main.auvlyfm.workers.dev",
     WORKER_COUNTER: "https://counter.auvlyfm.workers.dev",
 
