@@ -146,65 +146,44 @@
                 </section>
             </div>
         </main>
-        <div id="storyCardContainer" class="hidden-card-container">
-            <div id="storyCard">
-                <div class="story-header">
-                    <div class="story-header-content">
-                        <img id="storyUserImg" src="" alt="" class="foto-perfil" />
-                        <div class="story-text-group">
-                            <h1 id="storyTitle"></h1>
-                            <p id="storySubtitle" class="story-subtitle"></p>
-                        </div>
-                    </div>
-                </div>
-                <div class="story-body">
-                    <div class="story-column">
-                        <h3 id="storyCol1Title">Top Artists</h3>
-                        <div id="storyCol1List" class="story-list"></div>
-                    </div>
-                    <div class="story-column">
-                        <h3 id="storyCol2Title">Top Songs</h3>
-                        <div id="storyCol2List" class="story-list"></div>
-                    </div>
-                </div>
-                <div class="story-footer">
-                    <div class="story-brand">Create yours at auvlyfm.github.io</div>
-                    <div class="story-stat">
-                        <span id="storyScrobblesLabel" class="stat-label"></span>
-                        <span id="storyScrobblesValue" class="stat-value">0</span>
-                        <span id="storyDisclaimer" class="stat-disclaimer"></span>
-                    </div>
-                </div>
+ <div id="storyCard">
+    <div class="story-header">
+        <div class="story-header-overlay"></div>
+    </div>
+    <div class="story-separator"></div>
+    <div class="story-avatar-container">
+        <img id="storyUserImg" src="" alt="" class="story-avatar-img">
+    </div>
+    <div class="story-info-container">
+        <div class="story-info-row">
+            <div class="story-info-left">
+                <span class="story-label-small">Month Review</span>
+                <span id="storySubtitle" class="story-subtitle">JANUARY 2026</span>
+            </div>
+            <div class="story-info-right">
+                <span class="story-label-small">Prepared for</span>
+                <h1 id="storyTitle" class="story-username">User</h1>
             </div>
         </div>
-        <div id="squareCardV2Container" class="hidden-card-container">
-            <div id="squareCardV2">
-                <div class="sq-v2-header">
-                    <img id="sqUserImg" src="" alt="User Avatar" class="sq-v2-avatar" />
-                    <div class="sq-v2-user-info">
-                        <span id="sqUsername" class="sq-v2-username"></span>
-                        <span id="sqReportTitle" class="sq-v2-report-title"></span>
-                    </div>
-                </div>
-                <div class="sq-v2-body">
-                    <div class="sq-v2-column">
-                        <h3 id="sqCol1Title">Top Artists</h3>
-                        <ul id="sqCol1List" class="sq-v2-list"></ul>
-                    </div>
-                    <div class="sq-v2-column">
-                        <h3 id="sqCol2Title">Top Tracks</h3>
-                        <ul id="sqCol2List" class="sq-v2-list"></ul>
-                    </div>
-                </div>
-                <div class="sq-v2-footer">
-                    <div class="sq-v2-brand">Create yours at auvlyfm.github.io</div>
-                    <div class="sq-v2-stat">
-                        <span id="sqScrobblesLabel" class="sq-v2-stat-label"></span>
-                        <span id="sqScrobblesValue" class="sq-v2-stat-value">0</span>
-                    </div>
-                </div>
-            </div>
+    </div>
+    <div class="story-body">
+        <div class="story-column">
+            <h3 id="storyCol1Title">Top Artists</h3>
+            <div id="storyCol1List" class="story-list"></div>
         </div>
+        <div class="story-column">
+            <h3 id="storyCol2Title">Top Songs</h3>
+            <div id="storyCol2List" class="story-list"></div>
+        </div>
+    </div>
+    <div class="story-footer">
+        <div class="footer-stat-group">
+            <span id="storyScrobblesValue" class="footer-stat-value">0</span>
+            <span id="storyScrobblesLabel" class="footer-stat-label">Total Time</span>
+        </div>
+        <div class="story-brand">auvlyfm.github.io</div>
+    </div>
+</div>
         <button id="btnGerarRelatorio" style="display: flex; align-items: center; gap: 10px; justify-content: center;">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M3 15c0 2.828 0 4.243.879 5.121C4.757 21 6.172 21 9 21h6c2.828 0 4.243 0 5.121-.879C21 19.243 21 17.828 21 15M12 3v13m0 0 4-4.375M12 16l-4-4.375"/>

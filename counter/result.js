@@ -758,16 +758,24 @@ function formatarListaHTML(items, limit, type, format) {
     let html = "";
     const list = items || [];
     const itemsToShow = list.slice(0, limit);
+
     itemsToShow.forEach((item, i) => {
         let text = item.name;
         
         if (format === "story") {
-            const timeStr = formatTimeShort(item.seconds);
+            const isTop1 = i === 0;
+            const rankClass = isTop1 ? "top-1" : "";
+
+            let timeStr = formatTimeShort(item.seconds); 
+            timeStr = timeStr.replace('m', '') + ' mins'; 
+
             html += `
-                <div class="story-item ${i === 0 ? "top-1" : ""}" style="display: flex; align-items: center;">
-                    <span class="story-rank" style="flex-shrink: 0;">#${i + 1}</span>
-                    <span class="story-text" style="flex:1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-right: 15px;">${text}</span>
-                    <span style="font-size:0.9em; opacity:0.9; white-space:nowrap; flex-shrink: 0;">${timeStr}</span>
+                <div class="story-item ${rankClass}">
+                    <span class="story-rank">${i + 1}</span>
+                    <div class="story-item-content">
+                        <span class="story-text">${text}</span>
+                        <span class="story-meta">${timeStr}</span>
+                    </div>
                 </div>
             `;
         } else {
@@ -784,29 +792,30 @@ function formatarListaHTML(items, limit, type, format) {
 
 function aplicarCoresDinamicas(card, accentColor, format) {
     if (format === "story") {
-        card.querySelectorAll(".story-subtitle, .story-rank, .stat-label, .stat-disclaimer").forEach(
+        card.querySelectorAll(".story-subtitle, .story-username, .footer-stat-label, .story-rank").forEach(
             (el) => (el.style.color = accentColor)
         );
-        card.querySelectorAll(".story-column h3").forEach((el) => (el.style.borderLeftColor = accentColor));
-        card.querySelectorAll(".story-stat, .story-item.top-1").forEach((el) => {
-            el.style.borderColor = accentColor;
-            el.style.backgroundColor = accentColor + "33";
-        });
+        
+        card.querySelectorAll(".story-column h3").forEach(
+            (el) => (el.style.borderLeftColor = accentColor)
+        );
+
+        const separator = card.querySelector(".story-separator");
+        if (separator) {
+            separator.style.backgroundColor = accentColor;
+            separator.style.boxShadow = `0 0 20px ${accentColor}99`; 
+        }
+
         const headerElement = card.querySelector(".story-header");
-        card.style.background = `
-            radial-gradient(circle 700px at top right, ${accentColor}66, transparent),
-            #0f0f0f
-        `;
         if (headerElement) {
             if (globalTopArtistImage) {
-                headerElement.style.background = `
-                    radial-gradient(circle 700px at top right, ${accentColor}66, transparent),
-                    linear-gradient(to bottom, transparent 30%, rgba(15,15,15,0.2) 50%, rgba(15,15,15,0.8) 80%, #0f0f0f 100%),
-                    linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)),
-                    url('${globalTopArtistImage}') no-repeat center center / cover
+                headerElement.style.backgroundImage = `
+                    radial-gradient(circle at center, transparent 0%, #0f0f0f 120%),
+                    url('${globalTopArtistImage}')
                 `;
             } else {
-                headerElement.style.background = `radial-gradient(circle 700px at top right, ${accentColor}66, transparent)`;
+
+                headerElement.style.background = `radial-gradient(circle at center, ${accentColor}44, #0f0f0f)`;
             }
         }
     } else {
