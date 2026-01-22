@@ -1,7 +1,0 @@
-ErrorDocument 404 /404.html
-
-RewriteEngine On
-RewriteRule ^index\.html$ / [R=301,L]
-RewriteCond %{HTTPS} off [OR]
-RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
-RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
