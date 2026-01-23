@@ -399,7 +399,7 @@ async function generateFinalImage() {
             logging: false
         });
         const link = document.createElement("a");
-        link.download = `Match-${user1}-vs-${user2}-${selectedFormat}.png`;
+        link.download = `AuvlyFM-${user1}-vs-${user2}-${selectedFormat}.png`;
         link.href = canvas.toDataURL("image/png");
         link.click();
 

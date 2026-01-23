@@ -748,7 +748,7 @@ async function gerarImagemFinal(format, accentColor, selectedCharts) {
             logging: !1,
         });
         const link = document.createElement("a");
-        link.download = `TuneCharts-Counter-${username}-${currentPeriod}-${format}.png`;
+        link.download = `AuvlyFM-${username}-${currentPeriod}-${format}.png`;
         link.href = canvas.toDataURL("image/png");
         link.click();
         btn.textContent = "Done!";
