@@ -639,7 +639,7 @@ async function gerarImagemFinal(format, accentColor, selectedCharts) {
             width: cardWidth, height: cardHeight, logging: false,
         });
         const link = document.createElement("a");
-        link.download = `TuneCharts-${username}-${currentPeriod}-${format}.png`;
+        link.download = `AuvlyFM-${username}-${currentPeriod}-${format}.png`;
         link.href = canvas.toDataURL("image/png");
         link.click();
         btn.innerHTML = `${iconCheck} Done!`;
