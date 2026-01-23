@@ -146,35 +146,44 @@
             </div>
         </main>
         <div id="storyCardContainer" class="hidden-card-container">
-            <div id="storyCard">
-                <div class="story-header">
-                    <div class="story-header-content">
-                        <img id="storyUserImg" src="" alt="" class="foto-perfil" />
-                        <div class="story-text-group">
-                            <h1 id="storyTitle"></h1>
-                            <p id="storySubtitle" class="story-subtitle"></p>
-                        </div>
+        <div id="storyCard" >
+            <div class="story-header" >
+                <div class="story-header-overlay"></div>
+            </div>
+            <div class="story-separator"></div>
+            <div class="story-avatar-container">
+                <img id="storyUserImg" src="" alt="" class="story-avatar-img">
+            </div>
+            <div class="story-info-container">
+                <div class="story-info-row">
+                    <div class="story-info-left">
+                        <span class="story-label-small">Month Review</span>
+                        <span id="storySubtitle" class="story-subtitle">JANUARY 2026</span>
                     </div>
-                </div>
-                <div class="story-body">
-                    <div class="story-column">
-                        <h3 id="storyCol1Title">Top Artists</h3> 
-                        <div id="storyCol1List" class="story-list"></div>
-                    </div>
-                    <div class="story-column">
-                        <h3 id="storyCol2Title">Top Songs</h3>
-                        <div id="storyCol2List" class="story-list"></div>
-                    </div>
-                </div>
-                <div class="story-footer">
-                    <div class="story-brand">Create yours at auvlyfm.github.io</div>
-                    <div class="story-stat">
-                        <span id="storyScrobblesLabel" class="stat-label"></span>
-                        <span id="storyScrobblesValue" class="stat-value">0</span>
-                        <span id="storyDisclaimer" class="stat-disclaimer"></span>
+                    <div class="story-info-right">
+                        <span class="story-label-small">Prepared for</span>
+                        <h1 id="storyTitle" class="story-username">User</h1>
                     </div>
                 </div>
             </div>
+            <div class="story-body">
+                <div class="story-column">
+                    <h3 id="storyCol1Title">Top Artists</h3>
+                    <div id="storyCol1List" class="story-list"></div>
+                </div>
+                <div class="story-column">
+                    <h3 id="storyCol2Title">Top Songs</h3>
+                    <div id="storyCol2List" class="story-list"></div>
+                </div>
+            </div>
+            <div class="story-footer">
+                <div class="footer-stat-group">
+                    <span id="storyScrobblesValue" class="footer-stat-value">0</span>
+                    <span id="storyScrobblesLabel" class="footer-stat-label">Total Scrobbles</span>
+                </div>
+                <div class="story-brand">auvlyfm.github.io</div>
+            </div>
+        </div>
         </div>
         <div id="squareCardV2Container" class="hidden-card-container">
             <div id="squareCardV2">
