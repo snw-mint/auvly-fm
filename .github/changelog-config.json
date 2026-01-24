@@ -1,0 +1,31 @@
+{
+  "template": "## ❓ What changed and why?\n\n\n## 🛠️ Release Notes\n{{#categories}}\n### {{title}}\n{{#commits}}\n- {{subject}} ({{hash}})\n{{/commits}}\n{{/categories}}\n\n---\n**Made with 🎵 by @snw-mint**",
+  "categories": [
+    {
+      "title": "✨ New Features",
+      "labels": ["feat"]
+    },
+    {
+      "title": "🐛 Bug Fixes",
+      "labels": ["fix"]
+    },
+    {
+      "title": "⚡ Performance",
+      "labels": ["perf"]
+    },
+    {
+      "title": "♻️ Refactoring",
+      "labels": ["refactor"]
+    },
+    {
+      "title": "📚 Documentation",
+      "labels": ["docs"]
+    },
+    {
+      "title": "🛠️ Maintenance & CI",
+      "labels": ["chore", "build", "ci", "test", "style"]
+    }
+  ],
+  "ignore_labels": [],
+  "sort": "semver"
+}
