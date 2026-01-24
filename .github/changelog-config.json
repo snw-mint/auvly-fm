@@ -1,13 +1,13 @@
 {
-  "template": "## ❓ What changed and why?\n\n\n## 🛠️ Release Notes\n{{#categories}}\n### {{title}}\n{{#commits}}\n- {{subject}} ({{hash}})\n{{/commits}}\n{{/categories}}\n\n---\n**Made with 🎵 by @snw-mint**",
+  "template": "## ❓ What changed and why?\n\n\n## 🛠️ Release Notes\n{{#categories}}\n### {{title}}\n{{#commits}}\n- {{subject}}\n{{/commits}}\n{{/categories}}\n\n---\n**Made with 🎵 by @snw-mint**",
   "categories": [
     {
       "title": "✨ New Features",
-      "labels": ["feat"]
+      "labels": ["feat", "feature"]
     },
     {
       "title": "🐛 Bug Fixes",
-      "labels": ["fix"]
+      "labels": ["fix", "bug"]
     },
     {
       "title": "⚡ Performance",
@@ -22,10 +22,16 @@
       "labels": ["docs"]
     },
     {
-      "title": "🛠️ Maintenance & CI",
+      "title": "🔧 Chores & Maintenance",
       "labels": ["chore", "build", "ci", "test", "style"]
     }
   ],
-  "ignore_labels": [],
-  "sort": "semver"
+  "label_extractor": [
+    {
+      "pattern": "^(feat|fix|perf|refactor|docs|chore|build|ci|test|style)(\\(.+\\))?:",
+      "on_property": "message"
+    }
+  ],
+  "sort": "semver",
+  "trim_values": true
 }

@@ -40,35 +40,53 @@ auvly-fm/
 ```
 
 ## 🛠️ Tools & Features
-### <img src="android-chrome-512x512.png" width="30" align="center"> 1. AuvlyFM (Main)
 
-Generates visual cards summarizing top albums, artists, and tracks over customizable periods.
+Click to expand and see what each tool can do.
 
-- Focus: Aesthetics and shareability (9:16 format).
+<details> <summary> <strong>1. 🎵 AuvlyFM (Main) </strong> </summary>
+<img src="assets/images/og-image.jpg" width="30" align="center"
 
-- Tech: Canvas generation for instant download.
+A visualization tool designed to generate Last.fm charts based on your scrobble history.
 
-### <img src="/counter/android-chrome-512x512.png" width="30" align="center"> 2. Counter (/counter)
+**Features:**
+-   **Focus:** Based purely on scrobble counts.
+-   **Count:** Calculates total scrobbles over specific periods: Monthly (30 days) or Weekly (7 days, starting Monday).
+-   **Report generation:** Generates 9:16 or 1:1 charts for Top Tracks, Top Artists, or Top Albums.
+</details>
 
-Calculates the total time (hours/minutes) a user has spent listening to music.
+<details> <summary> <strong>2. ⏱️ Counter (/counter)</strong> </summary>
 
-- Methodology: To ensure mobile performance and avoid API rate limiting, this tool analyzes the user's Top 1,000 Tracks.
+Converts your total scrobbles into estimated listening time (minutes), processing up to the first 1,000 tracks.
 
-- Disclaimer: While this covers 99% of listening time for most users, tracks ranked below 1,000 are not included in the total sum. This decision prioritizes speed and stability over "forensic" precision found in slower, aggressive scrapers.
+**Features:**
+-   **Focus:** Based exclusively on listening duration (minutes). 
+-   **Count:** Calculates total minutes listened over Monthly (30-day) or Weekly (7-day, starting Monday) periods. 
+-   **Report generation:** Generates 9:16 or 1:1 charts for Most Listened Tracks, Artists, or Albums based on duration.
+</details>
 
-- UI: Includes an informational modal explaining this calculation logic to the user.
+<details> <summary> <strong>3. 👥 Matcher (/matcher)</strong> </summary>
 
-### <img src="/matcher/android-chrome-512x512.png" width="30" align="center"> 3. Matcher (/matcher)
+Compares scrobble data between two users over the last 30 days, identifying shared artists and highlighting unique listening habits for each user.
 
-A compatibility tool that cross-references listening history between two users to generate a "Match Score" based on shared artists and genres.
+**Features:**
+-   **Focus:** Based exclusively on user compatibility and taste comparison.
+-   **Count:** Analyzes scrobble data from the last 30 days.
+-   **Report generation:** Generates 9:16 or 1:1 split-view charts, visually comparing the "vibe" of both users side-by-side.
+</details>
 
-### <img src="/live/android-chrome-512x512.png" width="30" align="center"> 4. Live (/live)
+<details> <summary> <strong>4. ▶️ Live (/live)</strong> </summary>
 
-A real-time "Always-On Display" visualizer that transforms your monitor into a dynamic music frame.
+A screen to display your "Now Scrobbling" track directly from Last.fm.
 
-- Functionality: Continuously monitors your Last.fm "Now Playing" status. When a song starts, it fetches high-resolution album art or artist imagery from Spotify to create a beautiful, immersive backdrop. Desktop & Tablet Only.
+**Features:**
+-   **Focus:** Designed solely as an "Always On Display" for the track currently playing via Last.fm.   
+-   **Customization:** Fully customizable visual layout.
+-   **Live:** Automatically updates to reflect the current track in real-time.
+- **Limitation:** Available only for PC.
 
-- Features: Real-time polling (updates automatically without refresh). Toggle artist/track names, choose background modes (Artist Image, Album Art, or Solid Color), and adjust layout positions. Automatically detects when music stops.
+**NOTE: This tool is a visualizer, not a streaming music player (like Spotify or Apple Music). Updates rely on the Last.fm status and may experience a slight delay; they are not instantaneous.**
+
+</details>
 
 ## ⚠️ Security & API Usage
 
@@ -92,11 +110,6 @@ This project utilizes a direct-to-production workflow tailored for Hostinger:
 
 - Version Control: Changes are pushed from the server terminal to GitHub for backup/versioning.
 
-## Typical Workflow
-git add .
-git commit -m "Update feature X"
-git push origin main
-
-📄 License & Credits
+### 📄 License & Credits
 
 Developed by [Snow Mint](https://github.com/snw-mint/). AuvlyFM is not affiliated with Last.fm or Spotify. Data is provided courtesy of their respective public APIs.
