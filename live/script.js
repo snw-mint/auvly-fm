@@ -324,14 +324,14 @@ async function buscarImagensSpotify(artist, trackName) {
     const token = await obterTokenSpotify();
     if (!token) return { artist: null, album: null };
     const cleanArtist = encodeURIComponent(artist);
-    const cleanTrack = encodeURIComponent(trackName.split(" - ")[0].split("(")[0]);
+    const cleanTrack = encodeURIComponent(trackName.split(" - ")[0].split("(")[0]); 
     const result = { artist: null, album: null };
     try {
-       const urlArtist = `https://api.spotify.com/v1/search?q=artist:${encodeURIComponent(cleanArtist)}&type=artist&limit=1`;
+        const urlArtist = `https://api.spotify.com/v1/search?q=artist:$${cleanArtist}&type=artist&limit=1`;
         const resArtist = await fetch(urlArtist, { headers: { Authorization: `Bearer ${token}` } });
         const dataArtist = await resArtist.json();
         if (dataArtist.artists?.items?.length > 0) result.artist = dataArtist.artists.items[0].images[0]?.url;
-      const urlTrack = `https://api.spotify.com/v1/search?${encodeURIComponent(cleanTrack)}%20artist:${encodeURIComponent(cleanArtist)}&type=track&limit=1`;
+        const urlTrack = `https://api.spotify.com/v1/search?$${cleanTrack}%20artist:${cleanArtist}&type=track&limit=1`;
         const resTrack = await fetch(urlTrack, { headers: { Authorization: `Bearer ${token}` } });
         const dataTrack = await resTrack.json();
         if (dataTrack.tracks?.items?.length > 0) result.album = dataTrack.tracks.items[0].album.images[0]?.url;
